@@ -12,7 +12,7 @@ def interpret(lstring, default_length = 1,
                        default_width = 0.3,
                        default_materialindex = 0, 
                        default_angle = 45):
-    """Create graphical representation of L-string via Turtle Interpretation"""
+    """Create graphical representation of L-string via Turtle Interpretation. NOTE: Commands that are not supported will be ignored and not raise an error."""
     
     t = turtle.Turtle(default_width, default_materialindex)
     
@@ -20,7 +20,7 @@ def interpret(lstring, default_length = 1,
     lstring = "".join(lstring.split())
     # apply cut branch commands
     lstring = applyCuts(lstring)
-    # split into command symbols with optional parameter lists enclosed by ( and )
+    # split into command symbols with optional parameters
     # e.g. "F(230,24)F[+(45)F]F" will yield ['F(230,24)', 'F', '[', '+(45)', 'F', ']', 'F']
     commands = re.findall(r"[^()](?:\([^()]*\))?", lstring)
     
@@ -112,7 +112,7 @@ def applyCuts(lstring):
     searching_end_of_branch = False
     bracketBalance = 0
     cut_start = cut_end = None
-    # find segments to cut
+    # find start and end of all segments to cut
     for i, c in enumerate(lstring):
         if searching_end_of_branch:
             # look for unmatched right bracket (end of branch to cut)
@@ -126,6 +126,7 @@ def applyCuts(lstring):
                 cut_end = i
                 segments_to_cut.append((cut_start, cut_end))
         elif c == '%':
+            # found start of segment to cut
             searching_end_of_branch = True
             cut_start = i
     # no closing bracket found, thus cut until end of string
@@ -138,6 +139,7 @@ def applyCuts(lstring):
     return result.replace('%', '')
 
 def extractArgs(command):
+    """Return a list of the arguments of a command statement, e.g. A(arg1, arg2, .., argn) will return [arg1, arg2, .., argn]"""
     argstring_list = re.findall(r"\((.+)\)", command)
     if len(argstring_list) == 0:
         return []

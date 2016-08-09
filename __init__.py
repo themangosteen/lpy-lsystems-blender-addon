@@ -39,10 +39,9 @@ class Lindenmaker(bpy.types.Operator):
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
         
-        turtle_interpretation.interpret("F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]];F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]]", 
-                              default_length = 1, 
-                              default_width = 0.1, 
-                              default_angle = 35)
+#       turtle_interpretation.interpret("F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]];[+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]]", default_length = 1, default_width = 0.1, default_angle = 35)
+                              
+        turtle_interpretation.interpret("_(0.1)F(1)[-(60)F(0.3)][+(60)F(0.3)]F(1)[-(60)F(0.3)][+(60)F(0.3)]F(1)[-(60)F(0.3)][+(60)F(0.3)]F(1)[-(60)F(0.3)%F(1)F(1)F(1)F(1)F(1)F(1)B][+(60)F(0.3)%F(1)F(1)F(1)F(1)F(1)F(1)B]F(1)[-(60)X(0)F(1)F(1)F(1)F(1)F(1)B][+(60)X(0)F(1)F(1)F(1)F(1)F(1)B]F(1)[-(60)X(1)F(1)F(1)F(1)F(1)B][+(60)X(1)F(1)F(1)F(1)F(1)B]F(1)[-(60)X(2)F(1)F(1)F(1)B][+(60)X(2)F(1)F(1)F(1)B]F(1)[-(60)X(3)F(1)F(1)B][+(60)X(3)F(1)F(1)B]F(1)[-(60)X(4)F(1)B][+(60)X(4)F(1)B]F(1)[-(60)X(5)B][+(60)X(5)B]A", default_length = 1, default_width = 0.1, default_angle = 35)
        
         # get text from open editor file
         for area in bpy.context.screen.areas:
