@@ -42,9 +42,11 @@ class Turtle:
         vec = self.mat * Vector((stepsize,0,0,0))
         self.mat.col[3] += vec 
         
-    def move_and_draw(self, stepsize):
+    def move_and_draw(self, stepsize, linewidth=None):
         """Move turtle and draw cylinder between current and new position."""
-        bpy.ops.mesh.primitive_cylinder_add(vertices=5,radius=self.linewidth, depth=stepsize)
+        if linewidth is None:
+            linewidth = self.linewidth
+        bpy.ops.mesh.primitive_cylinder_add(vertices=5,radius=linewidth, depth=stepsize)
         cyl = bpy.context.object
         # rotate cylinder mesh to point towards x axis and position origin at base
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
