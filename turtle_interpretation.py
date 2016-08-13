@@ -4,6 +4,8 @@ from math import radians
 from mathutils import Vector, Matrix
 
 from lindenmaker import turtle
+import imp
+imp.reload(turtle)
     
 # TODO
 # ~(surface)

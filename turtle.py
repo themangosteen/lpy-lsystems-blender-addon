@@ -49,7 +49,7 @@ class Turtle:
         # add empty as new parent for objects on this branch
         bpy.ops.object.empty_add(type='ARROWS', radius=0)
         empty = bpy.context.object
-        empty.name = "Branch"
+        empty.name = "Node"
         empty.matrix_world *= self.mat
         self.add_child_to_current_branch_parent(empty)
         self.current_parent = empty
@@ -65,22 +65,22 @@ class Turtle:
         self.mat.col[3] += vec 
         
     def move_and_draw(self, stepsize, linewidth=None):
-        """Move turtle and draw cylinder between current and new position."""
+        """Move turtle and draw internode object between current and new position."""
         if linewidth is None:
             linewidth = self.linewidth
-        cyl = bpy.data.objects.new('Cylinder', self.default_mesh)
-        bpy.context.scene.objects.link(cyl)
-        cyl.select = True
+        internode = bpy.data.objects.new('Internode', self.default_mesh)
+        bpy.context.scene.objects.link(internode)
+        internode.select = True
         # set shading type
         bpy.ops.object.shade_flat()
         # set material
 #       if (bpy.data.materials):
-#           cyl.data.materials.append(bpy.data.materials[self.materialindex])
-        # align cylinder with turtle and put in branching parent hierarchy
-        cyl.matrix_world *= self.mat
+#           internode.data.materials.append(bpy.data.materials[self.materialindex])
+        # align internode object with turtle and put in branching parent hierarchy
+        internode.matrix_world *= self.mat
+        self.add_child_to_current_branch_parent(internode)
         # set scale
-        cyl.scale = Vector((stepsize, linewidth, linewidth))
-        self.add_child_to_current_branch_parent(cyl)
+        internode.scale = Vector((stepsize, linewidth, linewidth))
         # deselect all and move turtle
         bpy.ops.object.select_all(action='DESELECT')
         self.move(stepsize)

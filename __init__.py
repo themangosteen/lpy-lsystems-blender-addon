@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Lindenmaker",
-    "description": "Lindenmayer systems for Blender via LPY",
-    "author": "Nikolaus Leopold",
+    "description": "Lindenmayer systems for Blender via the L-Py framework.",
+    "author": "Addon by Nikolaus Leopold. L-Py framework by Frederic Boudon et al.",
     "version": (1, 0),
     "blender": (2, 77, 0),
     "location": "View3D > Add > Mesh",
@@ -12,18 +12,17 @@ bl_info = {
     "category": "Add Mesh"
 }
 
-if "bpy" in locals():
-    import imp
-    imp.reload(turtle_interpretation)
-    imp.reload(lpy)
-else:
-    from lindenmaker import turtle_interpretation
-    import lpy
+from lindenmaker import turtle_interpretation
+import lpy
+# reload scripts even if already imported, in case they have changed.
+# this allows use of operator "Reload Scripts" (key F8)
+import imp
+imp.reload(turtle_interpretation)
+imp.reload(lpy)
 
 import bpy
 from math import radians
 from mathutils import Vector, Matrix
-
 
 class LindenmakerPanel(bpy.types.Panel):
     """Lindenmaker Panel"""
@@ -76,8 +75,6 @@ class Lindenmaker(bpy.types.Operator):
         
         # interpret derived lstring via turtle graphics
         turtle_interpretation.interpret(lstring)
-        
-#       turtle_interpretation.interpret("F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]];[+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][+F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]][-F[+F]F[-F][+F[+F]F[-F]]F[+F]F[-F][-F[+F]F[-F]]]]", default_length = 1, default_width = 0.1, default_angle = 35)
             
         return {'FINISHED'}
 
@@ -102,5 +99,4 @@ def unregister():
 # to test the addon without having to install it.
 if __name__ == "__main__":
     register()
-
-
+    
