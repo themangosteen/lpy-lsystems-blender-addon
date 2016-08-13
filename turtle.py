@@ -16,9 +16,9 @@ class Turtle:
         # stack to save and restore turtle state
         self.stack = []
         # get mesh to be used for all F draw commands to save memory
-        if bpy.context.scene.default_mesh_name in bpy.data.meshes.keys():
+        if bpy.context.scene.internode_mesh_name in bpy.data.meshes.keys():
             # check for user defined mesh
-            self.default_mesh = bpy.data.meshes[bpy.context.scene.default_mesh_name]
+            self.default_mesh = bpy.data.meshes[bpy.context.scene.internode_mesh_name]
         else:
             # use default cylinder mesh
             if "LindenmakerDefaultCylinderMesh" not in bpy.data.meshes.keys():
@@ -32,6 +32,9 @@ class Turtle:
                 bpy.ops.transform.translate(value=(1,0,0))
                 bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
                 cyl.data.name = "LindenmakerDefaultCylinderMesh"
+                # smooth cylinder sides, but not cylinder caps
+                cyl.data.use_auto_smooth = True
+                cyl.data.auto_smooth_angle = radians(85)
                 # assign default mesh and delete object (mesh will persist)
                 cyl.data.use_fake_user = True
                 self.default_mesh = cyl.data
@@ -72,7 +75,7 @@ class Turtle:
         bpy.context.scene.objects.link(internode)
         internode.select = True
         # set shading type
-        bpy.ops.object.shade_flat()
+        bpy.ops.object.shade_smooth()
         # set material
 #       if (bpy.data.materials):
 #           internode.data.materials.append(bpy.data.materials[self.materialindex])
