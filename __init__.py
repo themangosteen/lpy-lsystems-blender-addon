@@ -43,6 +43,7 @@ class LindenmakerPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.prop(context.scene, "lpyfile_path")
+        layout.prop_search(context.scene, "default_mesh_name", bpy.data, "meshes")
         layout.prop(context.scene, "turtle_step_size")
         layout.operator(Lindenmaker.bl_idname)
 
@@ -57,9 +58,15 @@ class Lindenmaker(bpy.types.Operator):
         
         #bpy.ops.object.select_all(action='DESELECT')
         
-        # DELETE ALL OBJECTS (TODO remove this)
+        # Clear last objects (TODO remove this)
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
+        for item in bpy.data.meshes:
+            if item.users is 0:
+                bpy.data.meshes.remove(item)
+        for item in bpy.data.materials:
+            if item.users is 0:
+                bpy.data.materials.remove(item)
         
         # load L-Py framework lsystem specification file (.lpy) and derive lstring
         lsys = lpy.Lsystem(context.scene.lpyfile_path)
@@ -82,13 +89,14 @@ def register():
     bpy.types.INFO_MT_mesh_add.append(menu_func)
     bpy.types.Scene.lpyfile_path = bpy.props.StringProperty(name="File Path", description="Path of .lpy file to be imported", maxlen=1024, subtype='FILE_PATH')
     bpy.types.Scene.turtle_step_size = bpy.props.FloatProperty(name="Step Size", default=2, min=0.05, max=100)
+    bpy.types.Scene.default_mesh_name = bpy.props.StringProperty(name="Default Mesh", description="Name of default Mesh to be used for drawing via the F command")
     
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
     del bpy.types.Scene.lpyfile_path
     del bpy.types.Scene.turtle_step_size
-
+    del bpy.types.Scene.default_mesh_name
 
 # This allows you to run the script directly from blenders text editor
 # to test the addon without having to install it.
