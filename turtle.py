@@ -8,6 +8,7 @@ class Turtle:
     # - draw custom object
     
     def __init__(self, _linewidth=0.3, _materialindex=0):
+        scene = bpy.context.scene
         # turtle state consists of a 4x4 matrix and some drawing attributes
         self.mat = Matrix()
         self.linewidth = _linewidth
@@ -15,31 +16,21 @@ class Turtle:
         self.current_parent = None # parent of objects on current branch
         # stack to save and restore turtle state
         self.stack = []
-        # get mesh to be used for all F draw commands to save memory
-        if bpy.context.scene.internode_mesh_name in bpy.data.meshes.keys():
+        # get mesh to use to draw internodes (mesh reuse to save memory)
+        if scene.internode_mesh_name in bpy.data.meshes.keys():
             # check for user defined mesh
-            self.default_mesh = bpy.data.meshes[bpy.context.scene.internode_mesh_name]
+            self.internode_mesh = bpy.data.meshes[scene.internode_mesh_name]
         else:
             # use default cylinder mesh
-            if "LindenmakerDefaultCylinderMesh" not in bpy.data.meshes.keys():
-                # TODO put in function create_default_cylinder_mesh with vertex count param
-                bpy.ops.mesh.primitive_cylinder_add(vertices=5)
-                cyl = bpy.context.object
-                # rotate cylinder mesh to point towards x axis and position origin at base
-                bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.transform.rotate(value=radians(90), axis=(0, 1, 0))
-                bpy.ops.transform.translate(value=(1,0,0))
-                bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-                cyl.data.name = "LindenmakerDefaultCylinderMesh"
-                # smooth cylinder sides, but not cylinder caps
-                cyl.data.use_auto_smooth = True
-                cyl.data.auto_smooth_angle = radians(85)
-                # assign default mesh and delete object (mesh will persist)
-                cyl.data.use_fake_user = True
-                self.default_mesh = cyl.data
-                bpy.ops.object.delete()
-            self.default_mesh = bpy.data.meshes["LindenmakerDefaultCylinderMesh"]
+            if "LindenmakerDefaultCylinderMesh" in bpy.data.meshes.keys():
+                self.default_internode_mesh = bpy.data.meshes["LindenmakerDefaultCylinderMesh"]
+                if (scene.bool_reset_default_internode_mesh is True):
+                    self.default_internode_mesh.user_clear() # also clears fake user
+                    self.default_internode_mesh.name = "LindenmakerDefaultCylinderMesh.DEPRECATED"
+                    self.create_default_cylinder_mesh(scene.default_internode_cylinder_vertices)
+            else:
+                self.create_default_cylinder_mesh(scene.default_internode_cylinder_vertices)
+            self.internode_mesh = bpy.data.meshes["LindenmakerDefaultCylinderMesh"]
         # init root node
         bpy.ops.object.empty_add(type='ARROWS', radius=0)
         self.root = self.current_parent = bpy.context.object
@@ -71,11 +62,14 @@ class Turtle:
         """Move turtle and draw internode object between current and new position."""
         if linewidth is None:
             linewidth = self.linewidth
-        internode = bpy.data.objects.new('Internode', self.default_mesh)
+        internode = bpy.data.objects.new('Internode', self.internode_mesh)
         bpy.context.scene.objects.link(internode)
         internode.select = True
         # set shading type
-        bpy.ops.object.shade_smooth()
+        if (bpy.context.scene.bool_internode_shade_flat):
+            bpy.ops.object.shade_flat()
+        else:
+            bpy.ops.object.shade_smooth()
         # set material
 #       if (bpy.data.materials):
 #           internode.data.materials.append(bpy.data.materials[self.materialindex])
@@ -100,4 +94,22 @@ class Turtle:
             return
         object.parent = self.current_parent
         object.matrix_parent_inverse = self.current_parent.matrix_world.inverted()
+        
+    def create_default_cylinder_mesh(self, vertex_count):
+        """Initialize the default cylinder mesh used to draw internodes"""
+        bpy.ops.mesh.primitive_cylinder_add(vertices=vertex_count)
+        cyl = bpy.context.object
+        # rotate cylinder mesh to point towards x axis and position origin at base
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.transform.rotate(value=radians(90), axis=(0, 1, 0))
+        bpy.ops.transform.translate(value=(1,0,0))
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        cyl.data.name = "LindenmakerDefaultCylinderMesh"
+        # smooth cylinder sides, but not cylinder caps
+        cyl.data.use_auto_smooth = True
+        cyl.data.auto_smooth_angle = radians(85)
+        # assign default mesh and delete object (mesh will persist)
+        cyl.data.use_fake_user = True
+        bpy.ops.object.delete()
         
