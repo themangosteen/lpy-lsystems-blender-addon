@@ -43,13 +43,25 @@ class LindenmakerPanel(bpy.types.Panel):
         layout = self.layout
         layout.prop(context.scene, "lpyfile_path")
         layout.prop(context.scene, "turtle_step_size")
-        layout.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
-        layout.prop(context.scene, "bool_internode_shade_flat")
         box = layout.box()
+        box.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
+        box.prop(context.scene, "bool_internode_shade_flat")
         box.prop(context.scene, "bool_reset_default_internode_mesh")
-        box.prop(context.scene, "default_internode_cylinder_vertices")
+        boxcol = box.column()
+        boxcol.enabled = context.scene.bool_reset_default_internode_mesh
+        boxcol.prop(context.scene, "default_internode_cylinder_vertices")
         layout.prop(context.scene, "bool_no_hierarchy")
         layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
+        
+        box = layout.box()
+        row = box.row()
+        row.prop(context.scene, "section_lstring_expanded",
+            icon="TRIA_DOWN" if context.scene.section_lstring_expanded else "TRIA_RIGHT",
+            icon_only=True, emboss=False)
+        row.label(text="Manual L-string Configuration")
+        if context.scene.section_lstring_expanded is True:
+            row = box.row()
+            row.prop(context.scene, "lstring")
 
 
 class Lindenmaker(bpy.types.Operator):
@@ -73,13 +85,14 @@ class Lindenmaker(bpy.types.Operator):
                 bpy.data.materials.remove(item)
         
         # load L-Py framework lsystem specification file (.lpy) and derive lstring
-        lsys = lpy.Lsystem(context.scene.lpyfile_path)
-        #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
-        lstring = str(lsys.derive())
-        #print("LSYSTEM DERIVATION RESULT: {}".format(lstring))
+        if context.scene.lpyfile_path is not "":
+            lsys = lpy.Lsystem(context.scene.lpyfile_path)
+            #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
+            context.scene.lstring = str(lsys.derive())
+            #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
         
         # interpret derived lstring via turtle graphics
-        turtle_interpretation.interpret(lstring)
+        turtle_interpretation.interpret(context.scene.lstring)
             
         return {'FINISHED'}
 
@@ -89,6 +102,7 @@ def menu_func(self, context):
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_mesh_add.append(menu_func)
+    
     bpy.types.Scene.lpyfile_path = bpy.props.StringProperty(
         name="L-Py File Path", 
         description="Path of .lpy file to be imported", 
@@ -118,10 +132,17 @@ def register():
         name="Single Object (No Hierarchy)",
         description="Create a single object instead of a hierarchy tree of objects",
         default = False)
+    bpy.types.Scene.lstring = bpy.props.StringProperty(
+        name="L-string", 
+        description="The L-string resulting from the L-system derivation, to be used for graphical interpretation.")
+        
+    # properties for UI functionality (like collapsible sections etc.)
+    bpy.types.Scene.section_lstring_expanded = bpy.props.BoolProperty(default = False)
     
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
+    
     del bpy.types.Scene.lpyfile_path
     del bpy.types.Scene.turtle_step_size
     del bpy.types.Scene.internode_mesh_name
@@ -129,6 +150,9 @@ def unregister():
     del bpy.types.Scene.bool_reset_default_internode_mesh
     del bpy.types.Scene.bool_no_hierarchy
     del bpy.types.Scene.bool_internode_shade_flat
+    del bpy.types.Scene.lstring
+    
+    del bpy.types.Scene.section_lstring_expanded
 
 # This allows you to run the script directly from blenders text editor
 # to test the addon without having to install it.
