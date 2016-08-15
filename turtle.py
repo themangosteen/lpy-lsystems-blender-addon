@@ -24,7 +24,7 @@ class Turtle:
             # use default cylinder mesh
             if "LindenmakerDefaultCylinderMesh" in bpy.data.meshes.keys():
                 self.default_internode_mesh = bpy.data.meshes["LindenmakerDefaultCylinderMesh"]
-                if (scene.bool_reset_default_internode_mesh is True):
+                if scene.bool_reset_default_internode_mesh is True:
                     self.default_internode_mesh.user_clear() # also clears fake user
                     self.default_internode_mesh.name = "LindenmakerDefaultCylinderMesh.DEPRECATED"
                     self.create_default_cylinder_mesh(scene.default_internode_cylinder_vertices)
@@ -32,7 +32,17 @@ class Turtle:
                 self.create_default_cylinder_mesh(scene.default_internode_cylinder_vertices)
             self.internode_mesh = bpy.data.meshes["LindenmakerDefaultCylinderMesh"]
         # init root node
-        bpy.ops.object.empty_add(type='ARROWS', radius=0)
+        if not bpy.context.scene.bool_no_hierarchy:
+            bpy.ops.object.empty_add(type='ARROWS', radius=0)
+        else:
+            # create empty mesh with no vertices to join with subsequent objects
+            bpy.ops.mesh.primitive_plane_add()
+            root = bpy.context.object
+            root.data.name = "Root"
+            bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.mesh.select_all(action = 'SELECT')
+            bpy.ops.mesh.delete()
+            bpy.ops.object.mode_set(mode = 'OBJECT')
         self.root = self.current_parent = bpy.context.object
         bpy.ops.object.select_all(action='DESELECT')
         
@@ -40,14 +50,15 @@ class Turtle:
         """Push turtle state to stack and place empty object parent for subsequent cylinders"""
         # push state to stack
         self.stack.append((self.mat.copy(), self.linewidth, self.materialindex, self.current_parent))
-        # add empty as new parent for objects on this branch
-        bpy.ops.object.empty_add(type='ARROWS', radius=0)
-        empty = bpy.context.object
-        empty.name = "Node"
-        empty.matrix_world *= self.mat
-        self.add_child_to_current_branch_parent(empty)
-        self.current_parent = empty
-        bpy.ops.object.select_all(action='DESELECT')
+        if not bpy.context.scene.bool_no_hierarchy:
+            # add empty as new parent for objects on this branch
+            bpy.ops.object.empty_add(type='ARROWS', radius=0)
+            empty = bpy.context.object
+            empty.name = "Node"
+            empty.matrix_world *= self.mat
+            self.add_child_to_current_branch_parent(empty)
+            self.current_parent = empty
+            bpy.ops.object.select_all(action='DESELECT')
         
     def pop(self):
         """Pop last turtle state from stack and use as current"""
@@ -66,18 +77,24 @@ class Turtle:
         bpy.context.scene.objects.link(internode)
         internode.select = True
         # set shading type
-        if (bpy.context.scene.bool_internode_shade_flat):
+        if bpy.context.scene.bool_internode_shade_flat:
             bpy.ops.object.shade_flat()
         else:
             bpy.ops.object.shade_smooth()
         # set material
 #       if (bpy.data.materials):
 #           internode.data.materials.append(bpy.data.materials[self.materialindex])
-        # align internode object with turtle and put in branching parent hierarchy
+        # align internode object with turtle
         internode.matrix_world *= self.mat
-        self.add_child_to_current_branch_parent(internode)
         # set scale
         internode.scale = Vector((stepsize, linewidth, linewidth))
+        # add internode to existing structure
+        if not bpy.context.scene.bool_no_hierarchy:
+            self.add_child_to_current_branch_parent(internode)
+        else:
+            self.root.select = True
+            bpy.context.scene.objects.active = self.root
+            bpy.ops.object.join()
         # deselect all and move turtle
         bpy.ops.object.select_all(action='DESELECT')
         self.move(stepsize)
@@ -90,7 +107,7 @@ class Turtle:
         self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'X')
         
     def add_child_to_current_branch_parent(self, object):
-        if (self.current_parent is None):
+        if self.current_parent is None:
             return
         object.parent = self.current_parent
         object.matrix_parent_inverse = self.current_parent.matrix_world.inverted()

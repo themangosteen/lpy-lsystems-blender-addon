@@ -157,9 +157,9 @@ def register():
         description="Recreate the default internode cylinder mesh in case it was modified",
         default = False)
     bpy.types.Scene.bool_no_hierarchy = bpy.props.BoolProperty(
-        name="Single Object (No Hierarchy)",
-        description="Create a single object instead of a hierarchy tree of objects",
-        default = False)
+        name="Single Object (No Hierarchy, Faster)",
+        description="Create a single object instead of a hierarchy tree of objects (faster)",
+        default = True)
     bpy.types.Scene.lstring = bpy.props.StringProperty(
         name="L-string", 
         description="The L-string resulting from the L-system derivation, to be used for graphical interpretation.")
