@@ -7,7 +7,7 @@ class Turtle:
     # TODO
     # - draw custom object
     
-    def __init__(self, _linewidth=0.3, _materialindex=0):
+    def __init__(self, _linewidth, _materialindex):
         scene = bpy.context.scene
         # turtle state consists of a 4x4 matrix and some drawing attributes
         self.mat = Matrix()

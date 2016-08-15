@@ -10,10 +10,11 @@ imp.reload(turtle)
 # TODO
 # ~(surface)
     
-def interpret(lstring, default_length = 1, 
-                       default_width = 0.3,
-                       default_materialindex = 0, 
-                       default_angle = 45):
+def interpret(lstring, default_length = 2.0, 
+                       default_width = 0.5,
+                       default_width_growth_factor=1.05,
+                       default_angle = 45.0,
+                       default_materialindex = 0):
     """Create graphical representation of L-string via Turtle Interpretation. NOTE: Commands that are not supported will be ignored and not raise an error."""
     
     t = turtle.Turtle(default_width, default_materialindex)
@@ -86,13 +87,13 @@ def interpret(lstring, default_length = 1,
             if len(args) == 1:
                 t.linewidth = args[0]
             else:
-                t.linewidth += 0.05
+                t.linewidth *= default_width_growth_factor
         elif cmd[0] == '!':
             if len(args) == 1:
                 t.linewidth = args[0]
             else:
-                t.linewidth -= 0.05
-            t.linewidth = max(t.linewidth, 0.01)
+                t.linewidth *= 1-(default_width_growth_factor-1)
+            t.linewidth = max(t.linewidth, 0.0001)
         elif cmd[0] == ';':
             if len(args) == 1:
                 t.materialindex = int(args[0])

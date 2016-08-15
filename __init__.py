@@ -41,8 +41,14 @@ class LindenmakerPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.prop(context.scene, "lpyfile_path")
+        
         layout.prop(context.scene, "turtle_step_size")
+        layout.prop(context.scene, "turtle_line_width")
+        layout.prop(context.scene, "turtle_width_growth_factor")
+        layout.prop(context.scene, "turtle_rotation_angle")
+        
         box = layout.box()
         box.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
         box.prop(context.scene, "bool_internode_shade_flat")
@@ -50,7 +56,9 @@ class LindenmakerPanel(bpy.types.Panel):
         boxcol = box.column()
         boxcol.enabled = context.scene.bool_reset_default_internode_mesh
         boxcol.prop(context.scene, "default_internode_cylinder_vertices")
+        
         layout.prop(context.scene, "bool_no_hierarchy")
+        
         layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
         
         box = layout.box()
@@ -71,6 +79,7 @@ class Lindenmaker(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'} # enable undo for the operator.
 
     def execute(self, context):
+        scene = context.scene
         
         #bpy.ops.object.select_all(action='DESELECT')
         
@@ -85,14 +94,18 @@ class Lindenmaker(bpy.types.Operator):
                 bpy.data.materials.remove(item)
         
         # load L-Py framework lsystem specification file (.lpy) and derive lstring
-        if context.scene.lpyfile_path is not "":
-            lsys = lpy.Lsystem(context.scene.lpyfile_path)
+        if scene.lpyfile_path is not "":
+            lsys = lpy.Lsystem(scene.lpyfile_path)
             #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
-            context.scene.lstring = str(lsys.derive())
+            scene.lstring = str(lsys.derive())
             #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
         
         # interpret derived lstring via turtle graphics
-        turtle_interpretation.interpret(context.scene.lstring)
+        turtle_interpretation.interpret(scene.lstring, scene.turtle_step_size, 
+                                                       scene.turtle_line_width,
+                                                       scene.turtle_width_growth_factor,
+                                                       scene.turtle_rotation_angle,
+                                                       default_materialindex=0)
             
         return {'FINISHED'}
 
@@ -109,9 +122,24 @@ def register():
         maxlen=1024, subtype='FILE_PATH')
     bpy.types.Scene.turtle_step_size = bpy.props.FloatProperty(
         name="Default Turtle Step Size", 
-        default=2, 
+        default=2.0, 
         min=0.05, 
-        max=100)
+        max=100.0)
+    bpy.types.Scene.turtle_line_width = bpy.props.FloatProperty(
+        name="Default Turtle Line Width", 
+        default=0.5, 
+        min=0.01, 
+        max=100.0)
+    bpy.types.Scene.turtle_width_growth_factor = bpy.props.FloatProperty(
+        name="Default Turtle Width Growth Factor", 
+        default=1.05, 
+        min=1, 
+        max=100.0)
+    bpy.types.Scene.turtle_rotation_angle = bpy.props.FloatProperty(
+        name="Default Turtle Rotation Angle", 
+        default=45.0, 
+        min=0.0, 
+        max=360.0)
     bpy.types.Scene.internode_mesh_name = bpy.props.StringProperty(
         name="Internode Mesh", 
         description="Name of Mesh to be used for drawing internodes via the F command")
@@ -145,6 +173,9 @@ def unregister():
     
     del bpy.types.Scene.lpyfile_path
     del bpy.types.Scene.turtle_step_size
+    del bpy.types.Scene.turtle_line_width
+    del bpy.types.Scene.turtle_width_growth_factor
+    del bpy.types.Scene.turtle_rotation_angle
     del bpy.types.Scene.internode_mesh_name
     del bpy.types.Scene.default_internode_cylinder_vertices
     del bpy.types.Scene.bool_reset_default_internode_mesh
