@@ -97,7 +97,8 @@ class Lindenmaker(bpy.types.Operator):
         if scene.lpyfile_path is not "":
             lsys = lpy.Lsystem(scene.lpyfile_path)
             #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
-            scene.lstring = str(lsys.derive())
+            derivedAxialTree = lsys.derive()
+            scene.lstring = str(lsys.interpret(derivedAxialTree)) # apply "interpretation" / "homomorphism" production rules after derivation, if any are given. this is not the graphical interpretation
             #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
         
         # interpret derived lstring via turtle graphics
