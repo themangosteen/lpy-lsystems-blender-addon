@@ -21,16 +21,17 @@ imp.reload(turtle_interpretation)
 imp.reload(lpy)
 
 import bpy
+import os.path
 from math import radians
 from mathutils import Vector, Matrix
 
 class LindenmakerPanel(bpy.types.Panel):
     """Lindenmaker Panel"""
     bl_label = "Lindenmaker"
-    bl_idname = "OBJECT_PT_lindenmaker"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "world" # TODO put somewhere else??
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_context = "objectmode"
+    bl_category = "Lindenmaker"
     
     # get text from open editor file
 #    for area in bpy.context.screen.areas:
@@ -78,6 +79,10 @@ class Lindenmaker(bpy.types.Operator):
     bl_label = "Add Mesh via Lindenmayer System" # display name in the interface.
     bl_options = {'REGISTER', 'UNDO'} # enable undo for the operator.
 
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'OBJECT'
+
     def execute(self, context):
         scene = context.scene
         
@@ -94,12 +99,13 @@ class Lindenmaker(bpy.types.Operator):
                 bpy.data.materials.remove(item)
         
         # load L-Py framework lsystem specification file (.lpy) and derive lstring
-        if scene.lpyfile_path is not "":
-            lsys = lpy.Lsystem(scene.lpyfile_path)
-            #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
-            derivedAxialTree = lsys.derive()
-            scene.lstring = str(lsys.interpret(derivedAxialTree)) # apply "interpretation" / "homomorphism" production rules after derivation, if any are given. this is not the graphical interpretation
-            #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
+        if not os.path.isfile(scene.lpyfile_path):
+            self.report({'ERROR_INVALID_INPUT'}, "No input file specified or file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.")
+        lsys = lpy.Lsystem(scene.lpyfile_path)
+        #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
+        derivedAxialTree = lsys.derive()
+        scene.lstring = str(lsys.interpret(derivedAxialTree)) # apply "interpretation" / "homomorphism" production rules after derivation, if any are given. this is not the graphical interpretation
+        #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
         
         # interpret derived lstring via turtle graphics
         turtle_interpretation.interpret(scene.lstring, scene.turtle_step_size, 
