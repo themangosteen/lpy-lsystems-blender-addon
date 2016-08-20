@@ -53,6 +53,7 @@ class LindenmakerPanel(bpy.types.Panel):
         box = layout.box()
         box.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
         box.prop(context.scene, "bool_internode_shade_flat")
+        box.prop(context.scene, "internode_length_scale_factor")
         box.prop(context.scene, "bool_reset_default_internode_mesh")
         boxcol = box.column()
         boxcol.enabled = context.scene.bool_reset_default_internode_mesh
@@ -130,6 +131,10 @@ def register():
         name="L-Py File Path", 
         description="Path of .lpy file to be imported", 
         maxlen=1024, subtype='FILE_PATH')
+    bpy.types.Scene.lstring = bpy.props.StringProperty(
+        name="L-string", 
+        description="The L-string resulting from the L-system derivation, to be used for graphical interpretation.")
+        
     bpy.types.Scene.turtle_step_size = bpy.props.FloatProperty(
         name="Default Turtle Step Size", 
         default=2.0, 
@@ -142,6 +147,7 @@ def register():
         max=100.0)
     bpy.types.Scene.turtle_width_growth_factor = bpy.props.FloatProperty(
         name="Default Turtle Width Growth Factor", 
+        description="Factor by which line width is multiplied via ';' width increment command. Also used vor ',' width decrement command as 1-(factor-1).", 
         default=1.05, 
         min=1, 
         max=100.0)
@@ -152,27 +158,29 @@ def register():
         max=360.0)
     bpy.types.Scene.internode_mesh_name = bpy.props.StringProperty(
         name="Internode Mesh", 
-        description="Name of Mesh to be used for drawing internodes via the F command")
+        description="Name of Mesh to be used for drawing internodes via the 'F' command")
+    bpy.types.Scene.bool_internode_shade_flat = bpy.props.BoolProperty(
+        name="Internode Flat Shading",
+        description="Use flat shading instad of angle based shading for internode mesh",
+        default = False)
+    bpy.types.Scene.internode_length_scale_factor = bpy.props.FloatProperty(
+        name="Internode Length Scale", 
+        description="Scale factor for internode length to allow for internode length to deviate from stepsize, to enable overlapping internodes.", 
+        default=1.0,
+        min=0.0)
+    bpy.types.Scene.bool_reset_default_internode_mesh = bpy.props.BoolProperty(
+        name="Reset Default Internode Mesh",
+        description="Recreate the default internode cylinder mesh in case it was modified",
+        default=False)
     bpy.types.Scene.default_internode_cylinder_vertices = bpy.props.IntProperty(
         name="Default Internode Cylinder Vertices", 
         default=5, 
         min=3, 
         max=64)
-    bpy.types.Scene.bool_internode_shade_flat = bpy.props.BoolProperty(
-        name="Internode Flat Shading",
-        description="Use flat shading instad of angle based shading for internode mesh",
-        default = False)
-    bpy.types.Scene.bool_reset_default_internode_mesh = bpy.props.BoolProperty(
-        name="Reset Default Internode Mesh",
-        description="Recreate the default internode cylinder mesh in case it was modified",
-        default = False)
     bpy.types.Scene.bool_no_hierarchy = bpy.props.BoolProperty(
         name="Single Object (No Hierarchy, Faster)",
         description="Create a single object instead of a hierarchy tree of objects (faster)",
-        default = True)
-    bpy.types.Scene.lstring = bpy.props.StringProperty(
-        name="L-string", 
-        description="The L-string resulting from the L-system derivation, to be used for graphical interpretation.")
+        default=True)
         
     # properties for UI functionality (like collapsible sections etc.)
     bpy.types.Scene.section_lstring_expanded = bpy.props.BoolProperty(default = False)
@@ -182,16 +190,18 @@ def unregister():
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
     
     del bpy.types.Scene.lpyfile_path
+    del bpy.types.Scene.lstring
+    
     del bpy.types.Scene.turtle_step_size
     del bpy.types.Scene.turtle_line_width
     del bpy.types.Scene.turtle_width_growth_factor
     del bpy.types.Scene.turtle_rotation_angle
     del bpy.types.Scene.internode_mesh_name
-    del bpy.types.Scene.default_internode_cylinder_vertices
-    del bpy.types.Scene.bool_reset_default_internode_mesh
-    del bpy.types.Scene.bool_no_hierarchy
     del bpy.types.Scene.bool_internode_shade_flat
-    del bpy.types.Scene.lstring
+    del bpy.types.Scene.internode_length_scale_factor
+    del bpy.types.Scene.bool_reset_default_internode_mesh
+    del bpy.types.Scene.default_internode_cylinder_vertices
+    del bpy.types.Scene.bool_no_hierarchy
     
     del bpy.types.Scene.section_lstring_expanded
 

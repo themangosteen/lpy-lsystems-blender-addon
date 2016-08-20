@@ -75,12 +75,13 @@ class Turtle:
         """Move turtle and draw internode object between current and new position."""
         if linewidth is None:
             linewidth = self.linewidth
+        scene = bpy.context.scene
         internode = bpy.data.objects.new('Internode', self.internode_mesh) # reuse internode mesh
-        bpy.context.scene.objects.link(internode)
-        bpy.context.scene.objects.active = internode
+        scene.objects.link(internode)
+        scene.objects.active = internode
         internode.select = True
         # set shading type
-        if bpy.context.scene.bool_internode_shade_flat:
+        if scene.bool_internode_shade_flat:
             bpy.ops.object.shade_flat()
         else:
             bpy.ops.object.shade_smooth()
@@ -98,11 +99,11 @@ class Turtle:
         # add internode to existing structure
         internode.matrix_world *= self.mat
         # set scale
-        internode.scale = Vector((stepsize/2, linewidth, linewidth))
+        internode.scale = Vector((stepsize/2*scene.internode_length_scale_factor, linewidth, linewidth))
         # align internode object with turtle
-        if bpy.context.scene.bool_no_hierarchy:
+        if scene.bool_no_hierarchy:
             self.root.select = True
-            bpy.context.scene.objects.active = self.root
+            scene.objects.active = self.root
             bpy.ops.object.join()
         else:
             self.add_child_to_current_branch_parent(internode)
