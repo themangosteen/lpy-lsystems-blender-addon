@@ -104,7 +104,7 @@ def interpret(lstring, default_length = 2.0,
                 t.materialindex = int(args[0])
             else:
                 t.materialindex -= 1
-        t.materialindex = max(0, min(len(bpy.data.materials)-1, t.materialindex), 0)
+        t.materialindex = max(t.materialindex, 0) # just check if not negative, if higher than mat count, turtle adds new mats
 
     t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y')
     t.root.name = "Root"

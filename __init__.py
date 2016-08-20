@@ -86,16 +86,19 @@ class Lindenmaker(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
         
-        #bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action='DESELECT')
         
-        # Clear last objects (TODO remove this)
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
-        for item in bpy.data.meshes:
-            if item.users is 0:
-                bpy.data.meshes.remove(item)
-        for item in bpy.data.materials:
-            if item.users is 0:
+        # clear scene (for debugging)
+        if True: # delete all objects
+            bpy.ops.object.select_all(action='SELECT')
+            bpy.ops.object.delete()
+        if True: # remove unused meshes
+            for item in bpy.data.meshes:
+                if item.users is 0:
+                    bpy.data.meshes.remove(item)
+        if False: # remove all materials (including ones currently used)
+            for item in bpy.data.materials: 
+                item.user_clear()
                 bpy.data.materials.remove(item)
         
         # load L-Py framework lsystem specification file (.lpy) and derive lstring

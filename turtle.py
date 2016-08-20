@@ -32,17 +32,19 @@ class Turtle:
                 self.create_default_cylinder_mesh(scene.default_internode_cylinder_vertices)
             self.internode_mesh = bpy.data.meshes["LindenmakerDefaultCylinderMesh"]
         # init root node
-        if not bpy.context.scene.bool_no_hierarchy:
-            bpy.ops.object.empty_add(type='ARROWS', radius=0)
-        else:
+        if bpy.context.scene.bool_no_hierarchy:
             # create empty mesh with no vertices to join with subsequent objects
             bpy.ops.mesh.primitive_plane_add()
             root = bpy.context.object
             root.data.name = "Root"
+            root.data.use_auto_smooth = True
+            root.data.auto_smooth_angle = radians(85)
             bpy.ops.object.mode_set(mode = 'EDIT')
             bpy.ops.mesh.select_all(action = 'SELECT')
             bpy.ops.mesh.delete()
             bpy.ops.object.mode_set(mode = 'OBJECT')
+        else:
+            bpy.ops.object.empty_add(type='ARROWS', radius=0)
         self.root = self.current_parent = bpy.context.object
         bpy.ops.object.select_all(action='DESELECT')
         
@@ -73,28 +75,37 @@ class Turtle:
         """Move turtle and draw internode object between current and new position."""
         if linewidth is None:
             linewidth = self.linewidth
-        internode = bpy.data.objects.new('Internode', self.internode_mesh)
+        internode = bpy.data.objects.new('Internode', self.internode_mesh) # reuse internode mesh
         bpy.context.scene.objects.link(internode)
+        bpy.context.scene.objects.active = internode
         internode.select = True
         # set shading type
         if bpy.context.scene.bool_internode_shade_flat:
             bpy.ops.object.shade_flat()
         else:
             bpy.ops.object.shade_smooth()
-        # set material
-#       if (bpy.data.materials):
-#           internode.data.materials.append(bpy.data.materials[self.materialindex])
-        # align internode object with turtle
+        # create new empty materials if materialindex exceeds length of material list
+        # note: the important thing is to create material slots for different parts 
+        # of the structure, new materials can be assigned to the created slots later
+        while self.materialindex >= len(bpy.data.materials): 
+            bpy.ops.material.new()
+        # assign material
+        # to avoid cluttering the shared internode mesh, link material to current internode object
+        # when joining objects (no hierarchy) the related polygons will have the material assigned
+        internode.active_material = bpy.data.materials[self.materialindex] # also adds slot if none
+        internode.material_slots[0].link = 'OBJECT'
+        internode.material_slots[0].material = bpy.data.materials[self.materialindex]
+        # add internode to existing structure
         internode.matrix_world *= self.mat
         # set scale
-        internode.scale = Vector((stepsize, linewidth, linewidth))
-        # add internode to existing structure
-        if not bpy.context.scene.bool_no_hierarchy:
-            self.add_child_to_current_branch_parent(internode)
-        else:
+        internode.scale = Vector((stepsize/2, linewidth, linewidth))
+        # align internode object with turtle
+        if bpy.context.scene.bool_no_hierarchy:
             self.root.select = True
             bpy.context.scene.objects.active = self.root
             bpy.ops.object.join()
+        else:
+            self.add_child_to_current_branch_parent(internode)
         # deselect all and move turtle
         bpy.ops.object.select_all(action='DESELECT')
         self.move(stepsize)
