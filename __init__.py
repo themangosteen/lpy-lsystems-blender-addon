@@ -90,7 +90,7 @@ class Lindenmaker(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         
         # clear scene (for debugging)
-        if True: # delete all objects
+        if False: # delete all objects
             bpy.ops.object.select_all(action='SELECT')
             bpy.ops.object.delete()
         if True: # remove unused meshes
@@ -117,7 +117,6 @@ class Lindenmaker(bpy.types.Operator):
                                                        scene.turtle_width_growth_factor,
                                                        scene.turtle_rotation_angle,
                                                        default_materialindex=0)
-            
         return {'FINISHED'}
 
 def menu_func(self, context):

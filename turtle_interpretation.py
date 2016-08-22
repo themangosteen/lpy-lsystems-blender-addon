@@ -30,6 +30,7 @@ def interpret(lstring, default_length = 2.0,
     for cmd in commands:
         
         args = extractArgs(cmd)
+        print(str(args))
         
         if cmd[0] == 'F':
             if len(args) == 2:
@@ -38,7 +39,6 @@ def interpret(lstring, default_length = 2.0,
                 t.move_and_draw(args[0])
             else:
                 t.move_and_draw(default_length)
-                # use varargs?
         elif cmd[0] == 'f':
             if len(args) == 1:
                 t.move(args[0])
@@ -96,15 +96,26 @@ def interpret(lstring, default_length = 2.0,
             t.linewidth = max(t.linewidth, 0.0001)
         elif cmd[0] == ';':
             if len(args) == 1:
-                t.materialindex = int(args[0])
+                t.materialindex = max(int(args[0]), 0)
             else:
-                t.materialindex += 1
+                t.materialindex += 1 # if exceeds mat count, turtle adds new mats
         elif cmd[0] == ',':
             if len(args) == 1:
                 t.materialindex = int(args[0])
             else:
                 t.materialindex -= 1
-        t.materialindex = max(t.materialindex, 0) # just check if not negative, if higher than mat count, turtle adds new mats
+            t.materialindex = max(t.materialindex, 0)
+        
+        elif cmd[0] == '~':
+            if len(args) == 2:
+                t.draw_custom_object(args[0], args[1])
+            elif len(args) == 1:
+                t.draw_custom_object(args[0])
+            else:
+                pass
+                # todo report without operator: http://blender.stackexchange.com/questions/1826/operator-report-outside-operators
+                #self.report({'ERROR_INVALID_INPUT'}, "No object name given for '~' draw custom object command.")
+                # use varargs?
 
     t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y')
     t.root.name = "Root"
@@ -146,4 +157,10 @@ def extractArgs(command):
     argstring_list = re.findall(r"\((.+)\)", command)
     if len(argstring_list) == 0:
         return []
-    return [float(arg) for arg in re.split(',', argstring_list[0])]
+    result = []
+    for arg in re.split(',', argstring_list[0]):
+        try:
+            result.append(float(arg)) # try to cast to float
+        except ValueError:
+            result.append(arg) # else just add string argument
+    return result

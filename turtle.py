@@ -96,11 +96,11 @@ class Turtle:
         internode.active_material = bpy.data.materials[self.materialindex] # also adds slot if none
         internode.material_slots[0].link = 'OBJECT'
         internode.material_slots[0].material = bpy.data.materials[self.materialindex]
-        # add internode to existing structure
+        # align internode object with turtle
         internode.matrix_world *= self.mat
         # set scale
         internode.scale = Vector((stepsize/2*scene.internode_length_scale_factor, linewidth, linewidth))
-        # align internode object with turtle
+        # add internode to existing structure
         if scene.bool_no_hierarchy:
             self.root.select = True
             scene.objects.active = self.root
@@ -117,6 +117,32 @@ class Turtle:
         self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'Y')
     def roll(self, angle_degrees):
         self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'X')
+        
+    def draw_custom_object(self, objname, scale=1.0):
+        # just copy object (shared data) by object name and do almost same things as with internode
+        # dont add material, object can be edited itself
+        """Add custom object instance in current turtle coordinate system."""
+        if objname not in bpy.data.objects.keys():
+            # TODO report without operator: http://blender.stackexchange.com/questions/1826/operator-report-outside-operators
+            #self.report({'ERROR_INVALID_INPUT'}, "Error using '~' draw custom object command: No object named '{}'.".format(objname))
+            return
+        scene = bpy.context.scene
+        obj = bpy.data.objects.new(objname, bpy.data.objects[objname].data)
+        scene.objects.link(obj)
+        scene.objects.active = obj
+        obj.select = True
+        # align object with turtle
+        obj.matrix_world *= self.mat
+        # set scale
+        obj.scale = Vector((scale, scale, scale))
+        # add obj to existing structure
+        if scene.bool_no_hierarchy:
+            self.root.select = True
+            scene.objects.active = self.root
+            bpy.ops.object.join()
+        else:
+            self.add_child_to_current_branch_parent(obj)
+        bpy.ops.object.select_all(action='DESELECT')
         
     def add_child_to_current_branch_parent(self, object):
         if self.current_parent is None:
