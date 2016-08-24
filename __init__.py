@@ -52,13 +52,18 @@ class LindenmakerPanel(bpy.types.Panel):
         
         box = layout.box()
         box.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
-        box.prop(context.scene, "bool_internode_shade_flat")
-        box.prop(context.scene, "internode_length_scale_factor")
-        box.prop(context.scene, "bool_reset_default_internode_mesh")
+        box.prop(context.scene, "internode_length_scale")
+        box.prop(context.scene, "bool_draw_nodes")
         boxcol = box.column()
-        boxcol.enabled = context.scene.bool_reset_default_internode_mesh
+        boxcol.enabled = context.scene.bool_draw_nodes
+        boxcol.prop_search(context.scene, "node_mesh_name", bpy.data, "meshes")
+        box.prop(context.scene, "bool_recreate_default_meshes")
+        boxcol = box.column()
+        boxcol.enabled = context.scene.bool_recreate_default_meshes
         boxcol.prop(context.scene, "default_internode_cylinder_vertices")
+        boxcol.prop(context.scene, "default_node_icosphere_subdivisions")
         
+        layout.prop(context.scene, "bool_force_shade_flat")
         layout.prop(context.scene, "bool_no_hierarchy")
         
         layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
@@ -155,27 +160,42 @@ def register():
         default=45.0, 
         min=0.0, 
         max=360.0)
+        
     bpy.types.Scene.internode_mesh_name = bpy.props.StringProperty(
         name="Internode Mesh", 
-        description="Name of Mesh to be used for drawing internodes via the 'F' command")
-    bpy.types.Scene.bool_internode_shade_flat = bpy.props.BoolProperty(
-        name="Internode Flat Shading",
-        description="Use flat shading instad of angle based shading for internode mesh",
-        default = False)
-    bpy.types.Scene.internode_length_scale_factor = bpy.props.FloatProperty(
+        description="Name of custom mesh to be used for drawing internodes via the move and draw 'F' command",
+        default="LindenmakerDefaultInternodeMesh")
+    bpy.types.Scene.internode_length_scale = bpy.props.FloatProperty(
         name="Internode Length Scale", 
         description="Scale factor for internode length to allow for internode length to deviate from stepsize, to enable overlapping internodes.", 
         default=1.0,
         min=0.0)
-    bpy.types.Scene.bool_reset_default_internode_mesh = bpy.props.BoolProperty(
-        name="Reset Default Internode Mesh",
-        description="Recreate the default internode cylinder mesh in case it was modified",
+    bpy.types.Scene.bool_draw_nodes = bpy.props.BoolProperty(
+        name="Draw Nodes", 
+        description="Draw node objects at turtle position after each move command",
+        default=False)
+    bpy.types.Scene.node_mesh_name = bpy.props.StringProperty(
+        name="Node Mesh", 
+        description="Name of custom mesh to be used for drawing nodes",
+        default="LindenmakerDefaultNodeMesh")
+    bpy.types.Scene.bool_recreate_default_meshes = bpy.props.BoolProperty(
+        name="Recreate Default Internode / Node Meshes",
+        description="Recreate the default internode cylinder and node sphere meshes in case they were modified",
         default=False)
     bpy.types.Scene.default_internode_cylinder_vertices = bpy.props.IntProperty(
         name="Default Internode Cylinder Vertices", 
         default=5, 
         min=3, 
         max=64)
+    bpy.types.Scene.default_node_icosphere_subdivisions = bpy.props.IntProperty(
+        name="Default Node Icosphere Subdivisions", 
+        default=1, 
+        min=1, 
+        max=5)
+    bpy.types.Scene.bool_force_shade_flat = bpy.props.BoolProperty(
+        name="Force Flat Shading",
+        description="Use flat shading for all parts of the structure",
+        default=False)
     bpy.types.Scene.bool_no_hierarchy = bpy.props.BoolProperty(
         name="Single Object (No Hierarchy, Faster)",
         description="Create a single object instead of a hierarchy tree of objects (faster)",
@@ -195,11 +215,16 @@ def unregister():
     del bpy.types.Scene.turtle_line_width
     del bpy.types.Scene.turtle_width_growth_factor
     del bpy.types.Scene.turtle_rotation_angle
+    
     del bpy.types.Scene.internode_mesh_name
-    del bpy.types.Scene.bool_internode_shade_flat
-    del bpy.types.Scene.internode_length_scale_factor
-    del bpy.types.Scene.bool_reset_default_internode_mesh
+    del bpy.types.Scene.internode_length_scale
+    del bpy.types.Scene.bool_draw_nodes
+    del bpy.types.Scene.node_mesh_name
+    del bpy.types.Scene.bool_recreate_default_meshes
     del bpy.types.Scene.default_internode_cylinder_vertices
+    del bpy.types.Scene.default_node_icosphere_subdivisions
+    
+    del bpy.types.Scene.bool_force_shade_flat
     del bpy.types.Scene.bool_no_hierarchy
     
     del bpy.types.Scene.section_lstring_expanded

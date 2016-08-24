@@ -30,26 +30,33 @@ def interpret(lstring, default_length = 2.0,
     for cmd in commands:
         
         args = extractArgs(cmd)
-        print(str(args))
         
         if cmd[0] == 'F':
+            # move turtle and draw internode between old and new position
             if len(args) == 2:
-                t.move_and_draw(args[0], args[1])
+                t.draw_internode_module(length=args[0], width=args[1])
+                t.move(stepsize=args[0])
             elif len(args) == 1:
-                t.move_and_draw(args[0])
+                t.draw_internode_module(length=args[0])
+                t.move(stepsize=args[0])
             else:
-                t.move_and_draw(default_length)
+                t.draw_internode_module(default_length)
+                t.move(default_length)
         elif cmd[0] == 'f':
+            # move turtle
             if len(args) == 1:
-                t.move(args[0])
+                t.move(stepsize=args[0])
             else:
                 t.move(default_length)
-            
+        
         elif cmd[0] == '[':
+            # push current turtle state to stack
             t.push()
         elif cmd[0] == ']':
+            # restore turtle state from stack
             t.pop()
-            
+        
+        # rotate commands (turn, pitch, roll)
         elif cmd[0] == '+':
             if len(args) == 1:
                 t.turn(-args[0])
@@ -82,42 +89,48 @@ def interpret(lstring, default_length = 2.0,
                 t.roll(default_angle)
         elif cmd[0] == '|':
             t.turn(180)
-            
+        
+        # drawing attributes
         elif cmd[0] == '_':
+            # increase linewidth or set to value
             if len(args) == 1:
                 t.linewidth = args[0]
             else:
                 t.linewidth *= default_width_growth_factor
         elif cmd[0] == '!':
+            # decrease linewidth or set to value
             if len(args) == 1:
                 t.linewidth = args[0]
             else:
                 t.linewidth *= 1-(default_width_growth_factor-1)
             t.linewidth = max(t.linewidth, 0.0001)
         elif cmd[0] == ';':
+            # increase materialindex or set to value
             if len(args) == 1:
                 t.materialindex = max(int(args[0]), 0)
             else:
                 t.materialindex += 1 # if exceeds mat count, turtle adds new mats
         elif cmd[0] == ',':
+            # decrease materialindex or set to value
             if len(args) == 1:
                 t.materialindex = int(args[0])
             else:
                 t.materialindex -= 1
             t.materialindex = max(t.materialindex, 0)
         
+        # draw custom object
         elif cmd[0] == '~':
             if len(args) == 2:
-                t.draw_custom_object(args[0], args[1])
+                t.draw_module_from_custom_object(objname=args[0], objscale=Vector((args[1], args[1], args[1])))
             elif len(args) == 1:
-                t.draw_custom_object(args[0])
+                t.draw_module_from_custom_object(objname=args[0])
             else:
                 pass
                 # todo report without operator: http://blender.stackexchange.com/questions/1826/operator-report-outside-operators
                 #self.report({'ERROR_INVALID_INPUT'}, "No object name given for '~' draw custom object command.")
                 # use varargs?
 
-    t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y')
+    t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y') # rotate object to stand upright
     t.root.name = "Root"
     
 def applyCuts(lstring):
