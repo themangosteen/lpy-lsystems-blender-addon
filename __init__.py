@@ -12,13 +12,14 @@ bl_info = {
     "category": "Add Mesh"
 }
 
-from lindenmaker import turtle_interpretation
 import lpy
+from lindenmaker import turtle_interpretation
+from lindenmaker.turtle_interpretation_error import TurtleInterpretationError
 # reload scripts even if already imported, in case they have changed.
 # this allows use of operator "Reload Scripts" (key F8)
 import imp
-imp.reload(turtle_interpretation)
 imp.reload(lpy)
+imp.reload(turtle_interpretation)
 
 import bpy
 import os.path
@@ -109,7 +110,8 @@ class Lindenmaker(bpy.types.Operator):
         
         # load L-Py framework lsystem specification file (.lpy) and derive lstring
         if not os.path.isfile(scene.lpyfile_path):
-            self.report({'ERROR_INVALID_INPUT'}, "No input file specified or file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.")
+            self.report({'ERROR_INVALID_INPUT'}, "Input file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.\nFile not found: {}".format(scene.lpyfile_path))
+            return {'CANCELLED'}
         lsys = lpy.Lsystem(scene.lpyfile_path)
         #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
         derivedAxialTree = lsys.derive()
@@ -117,11 +119,15 @@ class Lindenmaker(bpy.types.Operator):
         #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
         
         # interpret derived lstring via turtle graphics
-        turtle_interpretation.interpret(scene.lstring, scene.turtle_step_size, 
-                                                       scene.turtle_line_width,
-                                                       scene.turtle_width_growth_factor,
-                                                       scene.turtle_rotation_angle,
-                                                       default_materialindex=0)
+        try: 
+            turtle_interpretation.interpret(scene.lstring, scene.turtle_step_size, 
+                                                           scene.turtle_line_width,
+                                                           scene.turtle_width_growth_factor,
+                                                           scene.turtle_rotation_angle,
+                                                           default_materialindex=0)
+        except TurtleInterpretationError as e:
+            self.report({'ERROR_INVALID_INPUT'}, str(e))
+            return {'CANCELLED'}
         return {'FINISHED'}
 
 def menu_func(self, context):
@@ -172,7 +178,7 @@ def register():
         min=0.0)
     bpy.types.Scene.bool_draw_nodes = bpy.props.BoolProperty(
         name="Draw Nodes", 
-        description="Draw node objects at turtle position after each move command",
+        description="Draw node objects at turtle position after each move command. Otherwise uses Empty objects if hierarchy is used.",
         default=False)
     bpy.types.Scene.node_mesh_name = bpy.props.StringProperty(
         name="Node Mesh", 

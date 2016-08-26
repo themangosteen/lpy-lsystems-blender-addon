@@ -1,11 +1,10 @@
 import bpy
 from math import radians
 from mathutils import Vector, Matrix
-    
+
+from lindenmaker.turtle_interpretation_error import TurtleInterpretationError
+
 class Turtle:
-    
-    # TODO
-    # - draw custom object
     
     def __init__(self, _linewidth, _materialindex):
         scene = bpy.context.scene
@@ -127,9 +126,7 @@ class Turtle:
         # get object data (mesh) for drawing
         # dont add material, object can be edited itself
         if objname not in bpy.data.objects.keys():
-            # TODO report without operator: http://blender.stackexchange.com/questions/1826/operator-report-outside-operators
-            #self.report({'ERROR_INVALID_INPUT'}, "Error using '~' draw custom object command: No object named '{}'.".format(objname))
-            return
+            raise TurtleInterpretationError("Error using '~' draw custom object command: No object named '{}'. Example usage: ~(\"Object\")".format(objname))
         self.draw_module(bpy.data.objects[objname].data, name=objname, scale=objscale)
     
     def draw_module(self, 

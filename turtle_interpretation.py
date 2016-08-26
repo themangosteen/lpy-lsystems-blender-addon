@@ -4,11 +4,9 @@ from math import radians
 from mathutils import Vector, Matrix
 
 from lindenmaker import turtle
+from lindenmaker.turtle_interpretation_error import TurtleInterpretationError
 import imp
 imp.reload(turtle)
-    
-# TODO
-# ~(surface)
     
 def interpret(lstring, default_length = 2.0, 
                        default_width = 0.5,
@@ -125,10 +123,7 @@ def interpret(lstring, default_length = 2.0,
             elif len(args) == 1:
                 t.draw_module_from_custom_object(objname=args[0])
             else:
-                pass
-                # todo report without operator: http://blender.stackexchange.com/questions/1826/operator-report-outside-operators
-                #self.report({'ERROR_INVALID_INPUT'}, "No object name given for '~' draw custom object command.")
-                # use varargs?
+                raise TurtleInterpretationError("No object name argument given for '~' draw custom object command. Example usage: ~(\"Object\")")
 
     t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y') # rotate object to stand upright
     t.root.name = "Root"
