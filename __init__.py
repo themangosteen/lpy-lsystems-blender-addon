@@ -157,9 +157,8 @@ class Lindenmaker(bpy.types.Operator):
         if self.lstring_production_mode == 'CLEAR_LSTRING':
             scene.lstring_for_production = ""
             scene.lstring_for_interpretation = ""
-            return {'FINISHED'}
         
-        if not self.lstring_production_mode == 'PRODUCE_NONE':
+        if self.lstring_production_mode not in ('PRODUCE_NONE', 'CLEAR_LSTRING'):
             # load L-Py framework lsystem specification file (.lpy)
             if not os.path.isfile(scene.lpyfile_path):
                 self.report({'ERROR_INVALID_INPUT'}, "Input file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.\nFile not found: {}".format(scene.lpyfile_path))
@@ -167,10 +166,6 @@ class Lindenmaker(bpy.types.Operator):
             lsys = lpy.Lsystem(scene.lpyfile_path)
             #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
             if self.lstring_production_mode == 'PRODUCE_ONE_STEP':
-                # substitute occurrences of e.g. ~(Object) with ~("Object")
-                # L-Py strips the quotes, but without them production fails.
-                scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=\))', r'"\1"',
-                                                      scene.lstring_for_production)
                 # use current L-string as axiom unless empty
                 if (scene.lstring_for_production != ""):
                     lsys.axiom = lpy.AxialTree(scene.lstring_for_production)
@@ -178,7 +173,15 @@ class Lindenmaker(bpy.types.Operator):
             # derive lstring via production rules (stored as L-Py AxialTree datastructure)
             derivedAxialTree = lsys.derive()
             scene.lstring_for_production = str(derivedAxialTree)
-            # apply homomorphism substituation step
+            # substitute occurrences of e.g. ~(Object) with ~("Object")
+            # L-Py strips the quotes, but without them production fails.
+            scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=\))', r'"\1"',
+                                                  scene.lstring_for_production)
+            # apply homomorphism substituation step.
+            # this is an L-Py feature intended as a postproduction step 
+            # to replace abstract module names by actual interpretation commands.
+            # in L-Py these rules are preceded by keywords "homomorphism:" or "interpretation:",
+            # however this should not be confused with the graphical turtle interpretation!
             scene.lstring_for_interpretation = str(lsys.interpret(lpy.AxialTree(scene.lstring_for_production)))
             #print("DERIVATION RESULT: {}".format(context.scene.lstring_for_interpretation))
         
@@ -194,6 +197,10 @@ class Lindenmaker(bpy.types.Operator):
             except TurtleInterpretationError as e:
                 self.report({'ERROR_INVALID_INPUT'}, str(e))
                 return {'CANCELLED'}
+            
+        # reset operator properties to defaults (needed in case op is called from menu)
+        self.lstring_production_mode = 'PRODUCE_FULL'
+        self.bool_interpret_lstring = True
         
         return {'FINISHED'}
 

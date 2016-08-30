@@ -124,11 +124,15 @@ TEXTBOX Homomorphism (For Interpretation):
 BUTTON Interpret L-string via Turtle Graphics
     Interpret current L-string via graphical turtle interpretation.
     No production.
+    
+TODO!!
 
 
 --- A NOTE ON MATERIALS ---
 
 TODO
+lindenmaker adds material slots and assigns first materials in global material list!
+idea is that materials in slots should be edited afterwards! make single user material copy to avoid conflicts in bigger scene!
 
 
 --- REFERENCES ------------------------------------------------------
