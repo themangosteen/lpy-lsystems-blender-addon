@@ -23,6 +23,7 @@ imp.reload(turtle_interpretation)
 
 import bpy
 import os.path
+import re
 from math import radians
 from mathutils import Vector, Matrix
 
@@ -33,13 +34,6 @@ class LindenmakerPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_context = "objectmode"
     bl_category = "Lindenmaker"
-    
-    # get text from open editor file
-#    for area in bpy.context.screen.areas:
-#        if area.type == 'TEXT_EDITOR':
-#            text_editor = area.spaces.active
-#            text = text_editor.text.as_string()
-#    print(text)
 
     def draw(self, context):
         layout = self.layout
@@ -73,7 +67,9 @@ class LindenmakerPanel(bpy.types.Panel):
         col.prop(context.scene, "bool_force_shade_flat")
         col.prop(context.scene, "bool_no_hierarchy")
         
-        layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
+        op_lindenmaker = layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
+        op_lindenmaker.lstring_production_mode = 'PRODUCE_FULL'
+        op_lindenmaker.bool_interpret_lstring = True
         
         box = layout.box()
         row = box.row()
@@ -82,17 +78,62 @@ class LindenmakerPanel(bpy.types.Panel):
             icon_only=True, emboss=False)
         row.label(text="Manual L-string Configuration")
         if context.scene.section_lstring_expanded is True:
-            box.prop(context.scene, "lstring", text="")
+            boxcol = box.column()
+            
+            # button to run lidenmaker doing production only
+            op_produce = boxcol.operator(Lindenmaker.bl_idname,
+                                         text="Produce L-string from .lpy File", 
+                                         icon='LIBRARY_DATA_DIRECT')
+            op_produce.lstring_production_mode = 'PRODUCE_FULL'
+            op_produce.bool_interpret_lstring = False
+            
+            # button to run lidenmaker applying one production step to the current L-string
+            op_produce_step = boxcol.operator(Lindenmaker.bl_idname,
+                                              text="Apply One Production Step",
+                                              icon='FRAME_NEXT')
+            op_produce_step.lstring_production_mode = 'PRODUCE_ONE_STEP'
+            op_produce_step.bool_interpret_lstring = False
+            
+            # button to run lidenmaker applying the homomorphism substitution, used
+            # to replace abstract module names by actual interpretation commands.
+            op_produce_homomorphism = boxcol.operator(Lindenmaker.bl_idname,
+                                                      text="Apply Homomorphism Substitution Step",
+                                                      icon='SORTALPHA')
+            op_produce_homomorphism.lstring_production_mode = 'PRODUCE_HOMOMORPHISM_STEP'
+            op_produce_homomorphism.bool_interpret_lstring = False
+            
+            # text field to copy/paste lstring
+            boxcol.prop(context.scene, "lstring", text="")
 
+            # button to run lidenmaker doing interpretation only
+            op_interpret = boxcol.operator(Lindenmaker.bl_idname,
+                                           text="Interpret L-string via Turtle Graphics",
+                                           icon='OUTLINER_OB_MESH')
+            op_interpret.lstring_production_mode = 'PRODUCE_NONE'
+            op_interpret.bool_interpret_lstring = True
 
 class Lindenmaker(bpy.types.Operator):
-    """Generate a mesh via a Lindenmayer system""" # tooltip for menu items and buttons.
     bl_idname = "mesh.lindenmaker" # unique identifier for buttons and menu items to reference.
     bl_label = "Add Mesh via Lindenmayer System" # display name in the interface.
+    bl_description = "Apply Operator" # tooltip
     bl_options = {'REGISTER', 'UNDO'} # enable undo for the operator.
 
+    lstring_production_mode = bpy.props.EnumProperty(
+        name="L-string Production Mode",
+        description="Mode of operation regarding L-string production.",
+        items=(('PRODUCE_FULL', "Produce Full", "Produce L-string from .lpy file via L-Py. Apply production rules as many times as specified in file, and also do the final homomorphism substitution step.", 0),
+               ('PRODUCE_ONE_STEP', "Produce One Step", "Apply one production step to current L-string", 1),
+               ('PRODUCE_HOMOMORPHISM_STEP', "Produce Homomorphism Step", "Apply interpretation / homomorphism rules to current L-string. This is not the graphical turtle interpretation, but rather a postproduction step to replace abstract module names by actual interpretation commands.", 2),
+               ('PRODUCE_NONE', "Produce None", "Skip L-string production", 3)),
+        default='PRODUCE_FULL')
+    bool_interpret_lstring = bpy.props.BoolProperty(
+        name="Interpret L-string",
+        description="Interpret L-string via graphical turtle interpretation.",
+        default=True)    
+    
     @classmethod
     def poll(cls, context):
+        # operator only available in object mode
         return context.mode == 'OBJECT'
 
     def execute(self, context):
@@ -113,26 +154,41 @@ class Lindenmaker(bpy.types.Operator):
                 item.user_clear()
                 bpy.data.materials.remove(item)
         
-        # load L-Py framework lsystem specification file (.lpy) and derive lstring
-        if not os.path.isfile(scene.lpyfile_path):
-            self.report({'ERROR_INVALID_INPUT'}, "Input file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.\nFile not found: {}".format(scene.lpyfile_path))
-            return {'CANCELLED'}
-        lsys = lpy.Lsystem(scene.lpyfile_path)
-        #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
-        derivedAxialTree = lsys.derive()
-        scene.lstring = str(lsys.interpret(derivedAxialTree)) # apply "interpretation" / "homomorphism" production rules after derivation, if any are given. this is not the graphical interpretation
-        #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
+        if not self.lstring_production_mode == 'PRODUCE_NONE':
+            # load L-Py framework lsystem specification file (.lpy)
+            if not os.path.isfile(scene.lpyfile_path):
+                self.report({'ERROR_INVALID_INPUT'}, "Input file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.\nFile not found: {}".format(scene.lpyfile_path))
+                return {'CANCELLED'}
+            lsys = lpy.Lsystem(scene.lpyfile_path)
+            #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
+            if self.lstring_production_mode == 'PRODUCE_ONE_STEP':
+                # substitute occurrences of e.g. ~(Object) with ~("Object")
+                # L-Py strips the quotes, but without them production fails.
+                scene.lstring = re.sub(r'(?<=~\()(\w*)(?=\))', r'"\1"', scene.lstring)
+                # use current L-string as axiom unless empty
+                if (scene.lstring != ""):
+                    lsys.axiom = lpy.AxialTree(scene.lstring)
+                lsys.derivationLength = 1
+            # derive lstring (represented as L-Py AxialTree datastructure)
+            derivedAxialTree = lsys.derive()
+            scene.lstring = str(derivedAxialTree)
+            # apply homomorphism substituation step
+            if self.lstring_production_mode in ('PRODUCE_HOMOMORPHISM_STEP', 'PRODUCE_FULL'):
+                scene.lstring = str(lsys.interpret(derivedAxialTree))
+            #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
         
-        # interpret derived lstring via turtle graphics
-        try: 
-            turtle_interpretation.interpret(scene.lstring, scene.turtle_step_size, 
-                                                           scene.turtle_line_width,
-                                                           scene.turtle_width_growth_factor,
-                                                           scene.turtle_rotation_angle,
-                                                           default_materialindex=0)
-        except TurtleInterpretationError as e:
-            self.report({'ERROR_INVALID_INPUT'}, str(e))
-            return {'CANCELLED'}
+        if self.bool_interpret_lstring:
+            # interpret derived lstring via turtle graphics
+            try:
+                turtle_interpretation.interpret(scene.lstring, scene.turtle_step_size, 
+                                                               scene.turtle_line_width,
+                                                               scene.turtle_width_growth_factor,
+                                                               scene.turtle_rotation_angle,
+                                                               default_materialindex=0)
+            except TurtleInterpretationError as e:
+                self.report({'ERROR_INVALID_INPUT'}, str(e))
+                return {'CANCELLED'}
+        
         return {'FINISHED'}
 
 def menu_func(self, context):
@@ -215,8 +271,8 @@ def register():
         description="Create a single object instead of a hierarchy tree of objects (faster)",
         default=True)
         
-    # properties for UI functionality (like collapsible sections etc.)
-    bpy.types.Scene.section_lstring_expanded = bpy.props.BoolProperty(default = False)
+    bpy.types.Scene.section_lstring_expanded = bpy.props.BoolProperty(
+        default = False)
     
 def unregister():
     bpy.utils.unregister_module(__name__)
