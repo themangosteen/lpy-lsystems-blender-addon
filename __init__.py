@@ -46,26 +46,32 @@ class LindenmakerPanel(bpy.types.Panel):
         
         layout.prop(context.scene, "lpyfile_path")
         
-        layout.prop(context.scene, "turtle_step_size")
-        layout.prop(context.scene, "turtle_line_width")
-        layout.prop(context.scene, "turtle_width_growth_factor")
-        layout.prop(context.scene, "turtle_rotation_angle")
+        col = layout.column() # if placed in column elements are closer to each other
+        col.prop(context.scene, "turtle_step_size")
+        col.prop(context.scene, "turtle_rotation_angle")
         
-        box = layout.box()
-        box.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
-        box.prop(context.scene, "internode_length_scale")
-        box.prop(context.scene, "bool_draw_nodes")
+        col = layout.column()
+        box = col.box()
         boxcol = box.column()
-        boxcol.enabled = context.scene.bool_draw_nodes
-        boxcol.prop_search(context.scene, "node_mesh_name", bpy.data, "meshes")
-        box.prop(context.scene, "bool_recreate_default_meshes")
-        boxcol = box.column()
-        boxcol.enabled = context.scene.bool_recreate_default_meshes
-        boxcol.prop(context.scene, "default_internode_cylinder_vertices")
-        boxcol.prop(context.scene, "default_node_icosphere_subdivisions")
+        boxcol.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
+        boxcol.prop(context.scene, "turtle_line_width")
+        boxcol.prop(context.scene, "turtle_width_growth_factor")
+        boxcol.prop(context.scene, "internode_length_scale")
+        boxsplit = boxcol.split(1/3)
+        boxsplitcol1 = boxsplit.column()
+        boxsplitcol1.prop(context.scene, "bool_draw_nodes")
+        boxsplitcol2 = boxsplit.column()
+        boxsplitcol2.enabled = context.scene.bool_draw_nodes
+        boxsplitcol2.prop_search(context.scene, "node_mesh_name", bpy.data, "meshes", text="")
+        boxcol.prop(context.scene, "bool_recreate_default_meshes")
+        boxcolcol = boxcol.column()
+        boxcolcol.enabled = context.scene.bool_recreate_default_meshes
+        boxcolcol.prop(context.scene, "default_internode_cylinder_vertices")
+        boxcolcol.prop(context.scene, "default_node_icosphere_subdivisions")
         
-        layout.prop(context.scene, "bool_force_shade_flat")
-        layout.prop(context.scene, "bool_no_hierarchy")
+        col = layout.column()
+        col.prop(context.scene, "bool_force_shade_flat")
+        col.prop(context.scene, "bool_no_hierarchy")
         
         layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
         
@@ -76,8 +82,7 @@ class LindenmakerPanel(bpy.types.Panel):
             icon_only=True, emboss=False)
         row.label(text="Manual L-string Configuration")
         if context.scene.section_lstring_expanded is True:
-            row = box.row()
-            row.prop(context.scene, "lstring")
+            box.prop(context.scene, "lstring", text="")
 
 
 class Lindenmaker(bpy.types.Operator):
@@ -147,42 +152,45 @@ def register():
         
     bpy.types.Scene.turtle_step_size = bpy.props.FloatProperty(
         name="Default Turtle Step Size", 
+        description="Default length value for 'F' (move and draw) and 'f' (move) commands if no arguments given.",
         default=2.0, 
         min=0.05, 
         max=100.0)
-    bpy.types.Scene.turtle_line_width = bpy.props.FloatProperty(
-        name="Default Turtle Line Width", 
-        default=0.5, 
-        min=0.01, 
-        max=100.0)
-    bpy.types.Scene.turtle_width_growth_factor = bpy.props.FloatProperty(
-        name="Default Turtle Width Growth Factor", 
-        description="Factor by which line width is multiplied via ';' width increment command. Also used vor ',' width decrement command as 1-(factor-1).", 
-        default=1.05, 
-        min=1, 
-        max=100.0)
     bpy.types.Scene.turtle_rotation_angle = bpy.props.FloatProperty(
         name="Default Turtle Rotation Angle", 
+        description="Default angle for rotation commands if no argument given.",
         default=45.0, 
         min=0.0, 
         max=360.0)
         
     bpy.types.Scene.internode_mesh_name = bpy.props.StringProperty(
         name="Internode Mesh", 
-        description="Name of custom mesh to be used for drawing internodes via the move and draw 'F' command",
+        description="Name of mesh to be used for drawing internodes via the 'F' (move and draw) command",
         default="LindenmakerDefaultInternodeMesh")
+    bpy.types.Scene.turtle_line_width = bpy.props.FloatProperty(
+        name="Default Line Width", 
+        description="Default width of internode and node objects drawn via 'F' (move and draw) command.",
+        default=1.0, 
+        min=0.01, 
+        max=100.0)
+    bpy.types.Scene.turtle_width_growth_factor = bpy.props.FloatProperty(
+        name="Default Width Growth Factor", 
+        description="Factor by which line width is multiplied via ';' (width increment) command. Also used for ','(width decrement) command as 1-(factor-1).", 
+        default=1.05, 
+        min=1, 
+        max=100.0)
     bpy.types.Scene.internode_length_scale = bpy.props.FloatProperty(
         name="Internode Length Scale", 
-        description="Scale factor for internode length to allow for internode length to deviate from stepsize, to enable overlapping internodes.", 
+        description="Factor by which move step size is multiplied to yield internode length. Used to allow internode length to deviate from step size.", 
         default=1.0,
         min=0.0)
     bpy.types.Scene.bool_draw_nodes = bpy.props.BoolProperty(
-        name="Draw Nodes", 
+        name="Draw Nodes:", 
         description="Draw node objects at turtle position after each move command. Otherwise uses Empty objects if hierarchy is used.",
         default=False)
     bpy.types.Scene.node_mesh_name = bpy.props.StringProperty(
         name="Node Mesh", 
-        description="Name of custom mesh to be used for drawing nodes",
+        description="Name of mesh to be used for drawing nodes",
         default="LindenmakerDefaultNodeMesh")
     bpy.types.Scene.bool_recreate_default_meshes = bpy.props.BoolProperty(
         name="Recreate Default Internode / Node Meshes",
@@ -218,11 +226,11 @@ def unregister():
     del bpy.types.Scene.lstring
     
     del bpy.types.Scene.turtle_step_size
-    del bpy.types.Scene.turtle_line_width
-    del bpy.types.Scene.turtle_width_growth_factor
     del bpy.types.Scene.turtle_rotation_angle
     
     del bpy.types.Scene.internode_mesh_name
+    del bpy.types.Scene.turtle_line_width
+    del bpy.types.Scene.turtle_width_growth_factor
     del bpy.types.Scene.internode_length_scale
     del bpy.types.Scene.bool_draw_nodes
     del bpy.types.Scene.node_mesh_name

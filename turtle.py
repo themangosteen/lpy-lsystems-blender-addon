@@ -111,7 +111,7 @@ class Turtle:
         scene = bpy.context.scene
         self.draw_module(self.internode_mesh, 
                          "Internode", 
-                         scale=Vector((length/2*scene.internode_length_scale, width, width)),
+                         scale=Vector((length*scene.internode_length_scale, width, width)),
                          assign_material_by_index=True)
                          
     def draw_node_module(self, scalefactor=1):
@@ -181,7 +181,7 @@ class Turtle:
         
     def create_default_internode_mesh(self, vertex_count):
         """Initialize the default cylinder mesh used to draw internodes"""
-        bpy.ops.mesh.primitive_cylinder_add(vertices=vertex_count)
+        bpy.ops.mesh.primitive_cylinder_add(vertices=vertex_count, radius=0.5)
         cyl = bpy.context.object
         # rotate cylinder mesh to point towards x axis and position origin at base
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -199,7 +199,7 @@ class Turtle:
         
     def create_default_node_mesh(self, _subdivisions=1):
         """Initialize the default icosphere mesh used to draw nodes"""
-        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=_subdivisions)
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=_subdivisions, size=0.5)
         icosphere = bpy.context.object
         icosphere.data.name = bpy.types.Scene.node_mesh_name[1]['default']
         icosphere.data.use_auto_smooth = True
