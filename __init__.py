@@ -60,6 +60,7 @@ class LindenmakerPanel(bpy.types.Panel):
         boxcol.prop(context.scene, "bool_recreate_default_meshes")
         boxcolcol = boxcol.column()
         boxcolcol.enabled = context.scene.bool_recreate_default_meshes
+        boxcolcol.alert = context.scene.bool_recreate_default_meshes
         boxcolcol.prop(context.scene, "default_internode_cylinder_vertices")
         boxcolcol.prop(context.scene, "default_node_icosphere_subdivisions")
         
@@ -80,32 +81,31 @@ class LindenmakerPanel(bpy.types.Panel):
         if context.scene.section_lstring_expanded is True:
             boxcol = box.column()
             
-            # button to run lidenmaker doing production only
-            op_produce = boxcol.operator(Lindenmaker.bl_idname,
-                                         text="Produce L-string from .lpy File", 
-                                         icon='LIBRARY_DATA_DIRECT')
-            op_produce.lstring_production_mode = 'PRODUCE_FULL'
-            op_produce.bool_interpret_lstring = False
+            # button to clear current L-strings
+            op_clear = boxcol.operator(Lindenmaker.bl_idname,
+                                       text="Clear Current L-strings", 
+                                       icon='X')
+            op_clear.lstring_production_mode = 'CLEAR_LSTRING'
+            op_clear.bool_interpret_lstring = False
             
-            # button to run lidenmaker applying one production step to the current L-string
+            # button to apply one production step to the current L-string (no interpretation)
             op_produce_step = boxcol.operator(Lindenmaker.bl_idname,
                                               text="Apply One Production Step",
                                               icon='FRAME_NEXT')
             op_produce_step.lstring_production_mode = 'PRODUCE_ONE_STEP'
             op_produce_step.bool_interpret_lstring = False
             
-            # button to run lidenmaker applying the homomorphism substitution, used
-            # to replace abstract module names by actual interpretation commands.
-            op_produce_homomorphism = boxcol.operator(Lindenmaker.bl_idname,
-                                                      text="Apply Homomorphism Substitution Step",
-                                                      icon='SORTALPHA')
-            op_produce_homomorphism.lstring_production_mode = 'PRODUCE_HOMOMORPHISM_STEP'
-            op_produce_homomorphism.bool_interpret_lstring = False
+            # text field to inspect and edit lstring used for production via copy/paste.
+            # this L-string is not used for interpretation (no homomorphism rules applied).
+            boxcol.label("L-string for Production:")
+            boxcol.prop(context.scene, "lstring_for_production", text="")
             
-            # text field to copy/paste lstring
-            boxcol.prop(context.scene, "lstring", text="")
-
-            # button to run lidenmaker doing interpretation only
+            # text field to inspect and edit final lstring via copy/paste.
+            # this L-string is used for interpretation and has homomorphism rules applied (if any).
+            boxcol.label("Homomorphism (For Interpretation):")
+            boxcol.prop(context.scene, "lstring_for_interpretation", text="")
+            
+            # button to do interpretation only (no production)
             op_interpret = boxcol.operator(Lindenmaker.bl_idname,
                                            text="Interpret L-string via Turtle Graphics",
                                            icon='OUTLINER_OB_MESH')
@@ -123,12 +123,12 @@ class Lindenmaker(bpy.types.Operator):
         description="Mode of operation regarding L-string production.",
         items=(('PRODUCE_FULL', "Produce Full", "Produce L-string from .lpy file via L-Py. Apply production rules as many times as specified in file, and also do the final homomorphism substitution step.", 0),
                ('PRODUCE_ONE_STEP', "Produce One Step", "Apply one production step to current L-string", 1),
-               ('PRODUCE_HOMOMORPHISM_STEP', "Produce Homomorphism Step", "Apply interpretation / homomorphism rules to current L-string. This is not the graphical turtle interpretation, but rather a postproduction step to replace abstract module names by actual interpretation commands.", 2),
-               ('PRODUCE_NONE', "Produce None", "Skip L-string production", 3)),
+               ('PRODUCE_NONE', "Produce None", "Skip L-string production", 2),
+               ('CLEAR_LSTRING', "Clear L-string", "Clear current L-string", 3)),
         default='PRODUCE_FULL')
     bool_interpret_lstring = bpy.props.BoolProperty(
         name="Interpret L-string",
-        description="Interpret L-string via graphical turtle interpretation.",
+        description="Interpret current L-string via graphical turtle interpretation.",
         default=True)    
     
     @classmethod
@@ -153,6 +153,11 @@ class Lindenmaker(bpy.types.Operator):
             for item in bpy.data.materials: 
                 item.user_clear()
                 bpy.data.materials.remove(item)
+                
+        if self.lstring_production_mode == 'CLEAR_LSTRING':
+            scene.lstring_for_production = ""
+            scene.lstring_for_interpretation = ""
+            return {'FINISHED'}
         
         if not self.lstring_production_mode == 'PRODUCE_NONE':
             # load L-Py framework lsystem specification file (.lpy)
@@ -164,27 +169,28 @@ class Lindenmaker(bpy.types.Operator):
             if self.lstring_production_mode == 'PRODUCE_ONE_STEP':
                 # substitute occurrences of e.g. ~(Object) with ~("Object")
                 # L-Py strips the quotes, but without them production fails.
-                scene.lstring = re.sub(r'(?<=~\()(\w*)(?=\))', r'"\1"', scene.lstring)
+                scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=\))', r'"\1"',
+                                                      scene.lstring_for_production)
                 # use current L-string as axiom unless empty
-                if (scene.lstring != ""):
-                    lsys.axiom = lpy.AxialTree(scene.lstring)
+                if (scene.lstring_for_production != ""):
+                    lsys.axiom = lpy.AxialTree(scene.lstring_for_production)
                 lsys.derivationLength = 1
-            # derive lstring (represented as L-Py AxialTree datastructure)
+            # derive lstring via production rules (stored as L-Py AxialTree datastructure)
             derivedAxialTree = lsys.derive()
-            scene.lstring = str(derivedAxialTree)
+            scene.lstring_for_production = str(derivedAxialTree)
             # apply homomorphism substituation step
-            if self.lstring_production_mode in ('PRODUCE_HOMOMORPHISM_STEP', 'PRODUCE_FULL'):
-                scene.lstring = str(lsys.interpret(derivedAxialTree))
-            #print("LSYSTEM DERIVATION RESULT: {}".format(context.scene.lstring))
+            scene.lstring_for_interpretation = str(lsys.interpret(lpy.AxialTree(scene.lstring_for_production)))
+            #print("DERIVATION RESULT: {}".format(context.scene.lstring_for_interpretation))
         
         if self.bool_interpret_lstring:
             # interpret derived lstring via turtle graphics
             try:
-                turtle_interpretation.interpret(scene.lstring, scene.turtle_step_size, 
-                                                               scene.turtle_line_width,
-                                                               scene.turtle_width_growth_factor,
-                                                               scene.turtle_rotation_angle,
-                                                               default_materialindex=0)
+                turtle_interpretation.interpret(scene.lstring_for_interpretation,
+                                                scene.turtle_step_size, 
+                                                scene.turtle_line_width,
+                                                scene.turtle_width_growth_factor,
+                                                scene.turtle_rotation_angle,
+                                                default_materialindex=0)
             except TurtleInterpretationError as e:
                 self.report({'ERROR_INVALID_INPUT'}, str(e))
                 return {'CANCELLED'}
@@ -199,12 +205,15 @@ def register():
     bpy.types.INFO_MT_mesh_add.append(menu_func)
     
     bpy.types.Scene.lpyfile_path = bpy.props.StringProperty(
-        name="L-Py File Path", 
+        name="L-Py File", 
         description="Path of .lpy file to be imported", 
         maxlen=1024, subtype='FILE_PATH')
-    bpy.types.Scene.lstring = bpy.props.StringProperty(
-        name="L-string", 
-        description="The L-string resulting from the L-system derivation, to be used for graphical interpretation.")
+    bpy.types.Scene.lstring_for_production = bpy.props.StringProperty(
+        name="L-string for Production Only", 
+        description="The L-string resulting from the L-system productions. No homomorphism rules applied, used for further production only.")
+    bpy.types.Scene.lstring_for_interpretation = bpy.props.StringProperty(
+        name="L-string for Interpretation", 
+        description="The L-string resulting from the L-system productions, with homomorphism rules applied (if any specified). Used for graphical turtle interpretation.")
         
     bpy.types.Scene.turtle_step_size = bpy.props.FloatProperty(
         name="Default Turtle Step Size", 
@@ -213,14 +222,14 @@ def register():
         min=0.05, 
         max=100.0)
     bpy.types.Scene.turtle_rotation_angle = bpy.props.FloatProperty(
-        name="Default Turtle Rotation Angle", 
+        name="Default Rotation Angle", 
         description="Default angle for rotation commands if no argument given.",
         default=45.0, 
         min=0.0, 
         max=360.0)
         
     bpy.types.Scene.internode_mesh_name = bpy.props.StringProperty(
-        name="Internode Mesh", 
+        name="Internode", 
         description="Name of mesh to be used for drawing internodes via the 'F' (move and draw) command",
         default="LindenmakerDefaultInternodeMesh")
     bpy.types.Scene.turtle_line_width = bpy.props.FloatProperty(
@@ -230,7 +239,7 @@ def register():
         min=0.01, 
         max=100.0)
     bpy.types.Scene.turtle_width_growth_factor = bpy.props.FloatProperty(
-        name="Default Width Growth Factor", 
+        name="Width Growth Factor", 
         description="Factor by which line width is multiplied via ';' (width increment) command. Also used for ','(width decrement) command as 1-(factor-1).", 
         default=1.05, 
         min=1, 
@@ -241,7 +250,7 @@ def register():
         default=1.0,
         min=0.0)
     bpy.types.Scene.bool_draw_nodes = bpy.props.BoolProperty(
-        name="Draw Nodes:", 
+        name="Nodes:", 
         description="Draw node objects at turtle position after each move command. Otherwise uses Empty objects if hierarchy is used.",
         default=False)
     bpy.types.Scene.node_mesh_name = bpy.props.StringProperty(
@@ -249,16 +258,16 @@ def register():
         description="Name of mesh to be used for drawing nodes",
         default="LindenmakerDefaultNodeMesh")
     bpy.types.Scene.bool_recreate_default_meshes = bpy.props.BoolProperty(
-        name="Recreate Default Internode / Node Meshes",
+        name="Recreate Default Internode / Node",
         description="Recreate the default internode cylinder and node sphere meshes in case they were modified",
         default=False)
     bpy.types.Scene.default_internode_cylinder_vertices = bpy.props.IntProperty(
-        name="Default Internode Cylinder Vertices", 
+        name="Internode Cylinder Vertices", 
         default=5, 
         min=3, 
         max=64)
     bpy.types.Scene.default_node_icosphere_subdivisions = bpy.props.IntProperty(
-        name="Default Node Icosphere Subdivisions", 
+        name="Node Icosphere Subdivisions", 
         default=1, 
         min=1, 
         max=5)
@@ -279,7 +288,8 @@ def unregister():
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
     
     del bpy.types.Scene.lpyfile_path
-    del bpy.types.Scene.lstring
+    del bpy.types.Scene.lstring_for_production
+    del bpy.types.Scene.lstring_for_interpretation
     
     del bpy.types.Scene.turtle_step_size
     del bpy.types.Scene.turtle_rotation_angle

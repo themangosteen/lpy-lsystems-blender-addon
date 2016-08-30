@@ -98,12 +98,33 @@ CHECKBOX Single Object (No Hierarchy, Faster)
     If disabled, generate a branching hierarchy of objects (internode/node meshes are shared).
     
 BUTTON Add Mesh via Lindenmayer System
-    Start the process! Passes .lpy file to L-Py to produce L-string,
-    then creates a graphical interpretation of the L-string based on above attributes.
+    Do the whole process from L-system definition to graphical interpretation!
+    Pass .lpy file to L-Py to produce L-string.
+    Apply production rules as many times as specified in file,
+    then apply homomorphism substitution rules.
+    Finally create a graphical interpretation of the L-string based on the UI options.
     
-Manual L-string Configuration
-    Text box to edit (copy/paste) the L-string used for the graphical turtle interpretation.
-TODO: store text and lstring separately, after production fill text with lstring. add checkbox, if enabled use text instead of lstring for interpretation.
+The following elements can be found in the "Manual L-string Configuration" section.
+BUTTON Clear Current L-strings:
+    Produce L-string from .lpy file via L-Py.
+    Apply production rules as many times as specified in file,
+    then apply homomorphism substitution rules.
+    No turtle interpretation.
+BUTTON Apply One Production Step
+    Apply one production step to current L-string, or if none, to the L-system axiom.
+    No turtle interpretation.
+TEXTBOX L-string for Production:
+    Edit via copy/paste.
+TEXTBOX Homomorphism (For Interpretation):
+    Edit via copy/paste.
+    Apply homomorphism rules to current L-string. This is an L-Py feature intended as a
+    postproduction step to replace abstract module names by actual interpretation commands.
+    In L-Py these rules are preceded by the keyword "homomorphism:" or "interpretation:",
+    however this should not be confused with the graphical turtle interpretation!
+BUTTON Interpret L-string via Turtle Graphics
+    Interpret current L-string via graphical turtle interpretation.
+    No production.
+
 
 --- A NOTE ON MATERIALS ---
 
