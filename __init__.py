@@ -175,7 +175,7 @@ class Lindenmaker(bpy.types.Operator):
             scene.lstring_for_production = str(derivedAxialTree)
             # substitute occurrences of e.g. ~(Object) with ~("Object")
             # L-Py strips the quotes, but without them production fails.
-            scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=\))', r'"\1"',
+            scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=[,\)])', r'"\1"',
                                                   scene.lstring_for_production)
             # apply homomorphism substituation step.
             # this is an L-Py feature intended as a postproduction step 
