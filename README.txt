@@ -57,7 +57,7 @@ _   Increase internode and node object draw radius by fixed amount. Parameters: 
 ,   Decrement material index for internode and node objects. Parameters: materialindex (integer, optional, if given by convention set to this value instead of decrement).
 
 %   Remove remainder of current branch (until next unmatched closing bracket or end of string).
-~   Draw custom object in current turtle context. Parameters: objectname (string, REQUIRED, e.g. "Leaf", must be name of an existing object in the Blender scene), scale (float, optional).
+~   Draw custom object in current turtle context. Parameters: objectname (string, REQUIRED, e.g. "Leaf", must be name of an existing object in the Blender scene), scale (float, optional, instead of one scale factor, three separate x y z scale arguments can be given, i.e. ~("Object", scale) or ~("Object", scale_x, scale_y, scale_z)).
 
 --- THE LINDENMAKER UI PANEL ---
 
@@ -96,6 +96,9 @@ CHECKBOX Force Flat Shading:
 CHECKBOX Single Object (No Hierarchy, Faster)
     If enabled, generate a single object with a single joined mesh. Significantly faster.
     If disabled, generate a branching hierarchy of objects (internode/node meshes are shared).
+CHECKBOX Remove Last Interpretation Result:
+    If enabled, the result from the previous interpretation is removed.
+    Useful for stepwise production and interpretation, to avoid cluttering the scene.
     
 BUTTON Add Mesh via Lindenmayer System
     Do the whole process from L-system definition to graphical interpretation!
@@ -106,33 +109,39 @@ BUTTON Add Mesh via Lindenmayer System
     
 The following elements can be found in the "Manual L-string Configuration" section.
 BUTTON Clear Current L-strings:
-    Produce L-string from .lpy file via L-Py.
-    Apply production rules as many times as specified in file,
-    then apply homomorphism substitution rules.
-    No turtle interpretation.
+    Clear the currently stored L-strings. 
+    Note that while the L-system yields just one L-string, two copies of the L-string 
+    are stored: One used for production and one used for graphical turtle interpretation.
+    See below for details.
 BUTTON Apply One Production Step
     Apply one production step to current L-string, or if none, to the L-system axiom.
-    No turtle interpretation.
+    No graphical turtle interpretation.
 TEXTBOX L-string for Production:
+    The produced L-string used for further stepwise production.
     Edit via copy/paste.
 TEXTBOX Homomorphism (For Interpretation):
+    The same produced L-string but with homomorphism substitution rules applied (if given), 
+    used for graphical turtle interpretation.
     Edit via copy/paste.
-    Apply homomorphism rules to current L-string. This is an L-Py feature intended as a
-    postproduction step to replace abstract module names by actual interpretation commands.
-    In L-Py these rules are preceded by the keyword "homomorphism:" or "interpretation:",
+    "Homomorphism" is a L-Py feature intended as a final postproduction step 
+    to replace abstract module names by actual interpretation commands. 
+    In L-Py these rules are preceded by the keywords "homomorphism:" or "interpretation:",
     however this should not be confused with the graphical turtle interpretation!
+    Once homomorphisms are applied the L-string cant be used for stepwise production,
+    thus two L-strings have to be stored.
 BUTTON Interpret L-string via Turtle Graphics
     Interpret current L-string via graphical turtle interpretation.
     No production.
-    
-TODO!!
+BUTTON Produce Step and Interpret
+    Apply one production step and interpret (for convenience).
 
 
 --- A NOTE ON MATERIALS ---
 
-TODO
-lindenmaker adds material slots and assigns first materials in global material list!
-idea is that materials in slots should be edited afterwards! make single user material copy to avoid conflicts in bigger scene!
+Lindenmaker adds material slots to the internode and objects or the respective mesh polygons if no hierarchy used, and assigns existing materials from the global material list (which is usually sorted alphabetically) by the currently set turtle material index!
+Thus basically random materials will be applied initially.
+The idea is that the important thing is to add material slots which can then be edited afterwards (as specifying materials before interpretation would make it impossible to preview the result).
+To avoid unintentional modifications of global materials that are already used in other objects (shared materials might be intended but not always), a "single user" copy of the material can be made from the materials panel.
 
 
 --- REFERENCES ------------------------------------------------------

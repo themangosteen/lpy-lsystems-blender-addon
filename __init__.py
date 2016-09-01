@@ -70,6 +70,7 @@ class LindenmakerPanel(bpy.types.Panel):
         
         op_lindenmaker = layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
         op_lindenmaker.lstring_production_mode = 'PRODUCE_FULL'
+        op_lindenmaker.bool_clear_lstring = False
         op_lindenmaker.bool_interpret_lstring = True
         
         box = layout.box()
@@ -85,7 +86,8 @@ class LindenmakerPanel(bpy.types.Panel):
             op_clear = boxcol.operator(Lindenmaker.bl_idname,
                                        text="Clear Current L-strings", 
                                        icon='X')
-            op_clear.lstring_production_mode = 'CLEAR_LSTRING'
+            op_clear.lstring_production_mode = 'PRODUCE_NONE'
+            op_clear.bool_clear_lstring = True
             op_clear.bool_interpret_lstring = False
             
             # button to apply one production step to the current L-string (no interpretation)
@@ -93,6 +95,7 @@ class LindenmakerPanel(bpy.types.Panel):
                                               text="Apply One Production Step",
                                               icon='FRAME_NEXT')
             op_produce_step.lstring_production_mode = 'PRODUCE_ONE_STEP'
+            op_produce_step.bool_clear_lstring = False
             op_produce_step.bool_interpret_lstring = False
             
             # text field to inspect and edit lstring used for production via copy/paste.
@@ -110,7 +113,16 @@ class LindenmakerPanel(bpy.types.Panel):
                                            text="Interpret L-string via Turtle Graphics",
                                            icon='OUTLINER_OB_MESH')
             op_interpret.lstring_production_mode = 'PRODUCE_NONE'
+            op_interpret.bool_clear_lstring = False
             op_interpret.bool_interpret_lstring = True
+            
+            # button to apply one production step and replace the current interpretation result.
+            op_interpret_step = boxcol.operator(Lindenmaker.bl_idname,
+                                           text="Produce Step and Reinterpret",
+                                           icon='OUTLINER_OB_MESH')
+            op_interpret_step.lstring_production_mode = 'PRODUCE_ONE_STEP'
+            op_interpret_step.bool_clear_lstring = False
+            op_interpret_step.bool_interpret_lstring = True
 
 class Lindenmaker(bpy.types.Operator):
     bl_idname = "mesh.lindenmaker" # unique identifier for buttons and menu items to reference.
@@ -123,9 +135,12 @@ class Lindenmaker(bpy.types.Operator):
         description="Mode of operation regarding L-string production.",
         items=(('PRODUCE_FULL', "Produce Full", "Produce L-string from .lpy file via L-Py. Apply production rules as many times as specified in file, and also do the final homomorphism substitution step.", 0),
                ('PRODUCE_ONE_STEP', "Produce One Step", "Apply one production step to current L-string", 1),
-               ('PRODUCE_NONE', "Produce None", "Skip L-string production", 2),
-               ('CLEAR_LSTRING', "Clear L-string", "Clear current L-string", 3)),
+               ('PRODUCE_NONE', "Produce None", "Skip L-string production", 2)),
         default='PRODUCE_FULL')
+    bool_clear_lstring = bpy.props.BoolProperty(
+        name="Clear L-string",
+        description="Clear current L-string",
+        default=False)
     bool_interpret_lstring = bpy.props.BoolProperty(
         name="Interpret L-string",
         description="Interpret current L-string via graphical turtle interpretation.",
@@ -154,11 +169,11 @@ class Lindenmaker(bpy.types.Operator):
                 item.user_clear()
                 bpy.data.materials.remove(item)
                 
-        if self.lstring_production_mode == 'CLEAR_LSTRING':
+        if self.bool_clear_lstring:
             scene.lstring_for_production = ""
             scene.lstring_for_interpretation = ""
         
-        if self.lstring_production_mode not in ('PRODUCE_NONE', 'CLEAR_LSTRING'):
+        if self.lstring_production_mode != 'PRODUCE_NONE':
             # load L-Py framework lsystem specification file (.lpy)
             if not os.path.isfile(scene.lpyfile_path):
                 self.report({'ERROR_INVALID_INPUT'}, "Input file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.\nFile not found: {}".format(scene.lpyfile_path))
@@ -200,6 +215,7 @@ class Lindenmaker(bpy.types.Operator):
             
         # reset operator properties to defaults (needed in case op is called from menu)
         self.lstring_production_mode = 'PRODUCE_FULL'
+        self.bool_clear_lstring = False
         self.bool_interpret_lstring = True
         
         return {'FINISHED'}
