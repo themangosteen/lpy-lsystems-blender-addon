@@ -37,93 +37,167 @@ def interpret(lstring, default_length = 2.0,
             elif len(args) == 1:
                 t.draw_internode_module(length=args[0])
                 t.move(stepsize=args[0])
-            else:
+            elif len(args) == 0:
                 t.draw_internode_module(default_length)
                 t.move(default_length)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command 'F' (move turtle and draw).\n"
+                      "Usage: 'F' or 'F(step_size)' or 'F(step_size, width)'")
         elif cmd[0] == 'f':
             # move turtle
             if len(args) == 1:
                 t.move(stepsize=args[0])
-            else:
+            elif len(args) == 0:
                 t.move(default_length)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command 'f' (move turtle).\n"
+                      "Usage: 'f' or 'f(step_size)'")
         
         elif cmd[0] == '[':
             # push current turtle state to stack
-            t.push()
+            if len(args) == 0:
+                t.push()
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '['"
+                      " (push current turtle state to stack).\n"
+                      "Usage: '['")
         elif cmd[0] == ']':
             # restore turtle state from stack
-            t.pop()
+            if len(args) == 0:
+                t.pop()
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command ']'"
+                      " (restore turtle state from stack).\n"
+                      "Usage: ']'")
         
         # rotate commands (turn, pitch, roll)
         elif cmd[0] == '+':
             if len(args) == 1:
                 t.turn(-args[0])
-            else:
+            elif len(args) == 0:
                 t.turn(-default_angle)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '+' (turn left).\n"
+                      "Usage: '+' or '+(angle_degree)'")
         elif cmd[0] == '-':
             if len(args) == 1:
                 t.turn(args[0])
-            else:
+            elif len(args) == 0:
                 t.turn(default_angle)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '-' (turn right).\n"
+                      "Usage: '-' or '-(angle_degree)'")
         elif cmd[0] == '&':
             if len(args) == 1:
                 t.pitch(-args[0])
-            else:
+            elif len(args) == 0:
                 t.pitch(-default_angle)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '&' (pitch down).\n"
+                      "Usage: '&' or '&(angle_degree)'")
         elif cmd[0] == '^':
             if len(args) == 1:
                 t.pitch(args[0])
-            else:
+            elif len(args) == 0:
                 t.pitch(default_angle)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '^' (pitch up).\n"
+                      "Usage: '^' or '^(angle_degree)'")
         elif cmd[0] == '\\':
             if len(args) == 1:
                 t.roll(-args[0])
-            else:
+            elif len(args) == 0:
                 t.roll(-default_angle)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '\\' (roll right).\n"
+                      "Usage: '\\' or '\\(angle_degree)'")
         elif cmd[0] == '/':
             if len(args) == 1:
                 t.roll(args[0])
-            else:
+            elif len(args) == 0:
                 t.roll(default_angle)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '/' (roll left).\n"
+                      "Usage: '/' or '/(angle_degree)'")
         elif cmd[0] == '|':
-            t.turn(180)
+            if len(args) == 0:
+                t.turn(180)
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '|' (turn halfway around).\n"
+                      "Usage: '|'")
         
         # drawing attributes
         elif cmd[0] == '_':
             # increase linewidth or set to value
             if len(args) == 1:
                 t.linewidth = args[0]
-            else:
+            elif len(args) == 0:
                 t.linewidth *= default_width_growth_factor
+            else: 
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '_' (increase or set linewidth).\n"
+                      "Usage: '_' or '_(width)'")
         elif cmd[0] == '!':
             # decrease linewidth or set to value
             if len(args) == 1:
                 t.linewidth = args[0]
-            else:
+            elif len(args) == 0:
                 t.linewidth *= 1-(default_width_growth_factor-1)
+            else:
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '!' (decrease or set linewidth).\n"
+                      "Usage: '!' or '!(width)'")
             t.linewidth = max(t.linewidth, 0.0001)
         elif cmd[0] == ';':
             # increase materialindex or set to value
             if len(args) == 1:
                 t.materialindex = max(int(args[0]), 0)
-            else:
+            elif len(args) == 0:
                 t.materialindex += 1 # if exceeds mat count, turtle adds new mats
+            else:
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command ';'"
+                      " (increase or set material index).\n"
+                      "Usage: ';' or ';(materialindex)'")
         elif cmd[0] == ',':
             # decrease materialindex or set to value
             if len(args) == 1:
                 t.materialindex = int(args[0])
-            else:
+            elif len(args) == 0:
                 t.materialindex -= 1
+            else:
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command ','"
+                      " (decrease or set material index).\n"
+                      "Usage: ',' or ',(materialindex)'")
             t.materialindex = max(t.materialindex, 0)
         
         # draw custom object
         elif cmd[0] == '~':
-            if len(args) == 2:
-                t.draw_module_from_custom_object(objname=args[0], objscale=Vector((args[1], args[1], args[1])))
+            if len(args) == 4:
+                t.draw_module_from_custom_object(objname=args[0],
+                                                 objscale=Vector((args[1], args[2], args[3])))
+            elif len(args) == 2:
+                t.draw_module_from_custom_object(objname=args[0], 
+                                                 objscale=Vector((args[1], args[1], args[1])))
             elif len(args) == 1:
                 t.draw_module_from_custom_object(objname=args[0])
             else:
-                raise TurtleInterpretationError("No object name argument given for '~' draw custom object command. Example usage: ~(\"Object\")")
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '~' (draw custom object).\n"
+                      "Usage: '~(\"Object\")' or '~(\"Object\", scale)'"
+                      " or '~(\"Object\", scale_x, scale_y, scale_z)'")
 
     t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y') # rotate object to stand upright
     t.root.name = "Root"
