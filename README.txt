@@ -107,7 +107,7 @@ BUTTON Add Mesh via Lindenmayer System
     then apply homomorphism substitution rules.
     Finally create a graphical interpretation of the L-string based on the UI options.
     
-The following elements can be found in the "Manual L-string Configuration" section.
+The following elements can be found in the "Stepwise L-string Production" section.
 BUTTON Clear Current L-strings:
     Clear the currently stored L-strings. 
     Note that while the L-system yields just one L-string, two copies of the L-string 

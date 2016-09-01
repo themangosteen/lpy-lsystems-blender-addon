@@ -75,6 +75,7 @@ class LindenmakerPanel(bpy.types.Panel):
         col = layout.column()
         col.prop(context.scene, "bool_force_shade_flat")
         col.prop(context.scene, "bool_no_hierarchy")
+        col.prop(context.scene, "bool_remove_last_interpretation_result")
         
         op_lindenmaker = layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
         op_lindenmaker.lstring_production_mode = 'PRODUCE_FULL'
@@ -212,6 +213,9 @@ class Lindenmaker(bpy.types.Operator):
             #print("DERIVATION RESULT: {}".format(context.scene.lstring_for_interpretation))
         
         if self.bool_interpret_lstring:
+            if (scene.bool_remove_last_interpretation_result 
+                and scene.last_interpretation_result_objname in bpy.data.objects.keys()):
+                delete_hierarchy(bpy.data.objects[scene.last_interpretation_result_objname])
             # interpret derived lstring via turtle graphics
             try:
                 turtle_interpretation.interpret(scene.lstring_for_interpretation,
@@ -248,6 +252,9 @@ def register():
     bpy.types.Scene.lstring_for_interpretation = bpy.props.StringProperty(
         name="L-string for Interpretation", 
         description="The L-string resulting from the L-system productions, with homomorphism rules applied (if any specified). Used for graphical turtle interpretation.")
+    bpy.types.Scene.last_interpretation_result_objname = bpy.props.StringProperty(
+        name="Last Interpretation Result Object Name", 
+        description="Name of the object resulting from the last graphical turtle interpretation.")
         
     bpy.types.Scene.turtle_step_size = bpy.props.FloatProperty(
         name="Default Turtle Step Size", 
@@ -305,6 +312,7 @@ def register():
         default=1, 
         min=1, 
         max=5)
+        
     bpy.types.Scene.bool_force_shade_flat = bpy.props.BoolProperty(
         name="Force Flat Shading",
         description="Use flat shading for all parts of the structure",
@@ -313,6 +321,10 @@ def register():
         name="Single Object (No Hierarchy, Faster)",
         description="Create a single object instead of a hierarchy tree of objects (faster)",
         default=True)
+    bpy.types.Scene.bool_remove_last_interpretation_result = bpy.props.BoolProperty(
+        name="Remove Last Interpretation Result",
+        description="When running the graphical turtle interpretation, the result from the previous interpretation is removed.",
+        default=False)
     
     bpy.types.Scene.section_internode_expanded = bpy.props.BoolProperty(default = False)
     bpy.types.Scene.section_lstring_expanded = bpy.props.BoolProperty(default = False)
@@ -324,6 +336,7 @@ def unregister():
     del bpy.types.Scene.lpyfile_path
     del bpy.types.Scene.lstring_for_production
     del bpy.types.Scene.lstring_for_interpretation
+    del bpy.types.Scene.last_interpretation_result_objname
     
     del bpy.types.Scene.turtle_step_size
     del bpy.types.Scene.turtle_rotation_angle
@@ -340,6 +353,7 @@ def unregister():
     
     del bpy.types.Scene.bool_force_shade_flat
     del bpy.types.Scene.bool_no_hierarchy
+    del bpy.types.Scene.bool_remove_last_interpretation_result
     
     del bpy.types.Scene.section_internode_expanded
     del bpy.types.Scene.section_lstring_expanded
@@ -349,3 +363,16 @@ def unregister():
 if __name__ == "__main__":
     register()
     
+def delete_hierarchy(obj):
+    """Delete an object and all its children"""
+    objnames = set([obj.name])
+
+    def get_children_names(obj):
+        for child in obj.children:
+            objnames.add(child.name)
+            if child.children:
+                get_children_names(child)
+
+    get_children_names(obj)
+    [setattr(bpy.data.objects[name], 'select', True) for name in objnames]
+    bpy.ops.object.delete()

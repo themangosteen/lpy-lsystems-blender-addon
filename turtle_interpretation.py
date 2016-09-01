@@ -200,7 +200,8 @@ def interpret(lstring, default_length = 2.0,
                       " or '~(\"Object\", scale_x, scale_y, scale_z)'")
 
     t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y') # rotate object to stand upright
-    t.root.name = "Root"
+    t.root.name = "Root" # changed to "Root.xxx" on name collision
+    bpy.context.scene.last_interpretation_result_objname = t.root.name
     
 def applyCuts(lstring):
     """Remove branch segments following a cut command ('%') until their end of branch (i.e. until next unmatched closing bracket or end of string"""
