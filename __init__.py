@@ -44,25 +44,33 @@ class LindenmakerPanel(bpy.types.Panel):
         col.prop(context.scene, "turtle_step_size")
         col.prop(context.scene, "turtle_rotation_angle")
         
-        col = layout.column()
-        box = col.box()
-        boxcol = box.column()
-        boxcol.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
-        boxcol.prop(context.scene, "turtle_line_width")
-        boxcol.prop(context.scene, "turtle_width_growth_factor")
-        boxcol.prop(context.scene, "internode_length_scale")
-        boxsplit = boxcol.split(1/3)
-        boxsplitcol1 = boxsplit.column()
-        boxsplitcol1.prop(context.scene, "bool_draw_nodes")
-        boxsplitcol2 = boxsplit.column()
-        boxsplitcol2.enabled = context.scene.bool_draw_nodes
-        boxsplitcol2.prop_search(context.scene, "node_mesh_name", bpy.data, "meshes", text="")
-        boxcol.prop(context.scene, "bool_recreate_default_meshes")
-        boxcolcol = boxcol.column()
-        boxcolcol.enabled = context.scene.bool_recreate_default_meshes
-        boxcolcol.alert = context.scene.bool_recreate_default_meshes
-        boxcolcol.prop(context.scene, "default_internode_cylinder_vertices")
-        boxcolcol.prop(context.scene, "default_node_icosphere_subdivisions")
+        box = layout.box()
+        boxlabelcol = box.column()
+        boxlabelcol.scale_y = 1.2
+        boxlabelrow = boxlabelcol.row()
+        boxlabelrow.scale_y = 0.5
+        boxlabelrow.prop(context.scene, "section_internode_expanded",
+            icon="TRIA_DOWN" if context.scene.section_internode_expanded else "TRIA_RIGHT",
+            icon_only=True, emboss=False)
+        boxlabelrow.label(text="Internodes and Nodes")
+        if context.scene.section_internode_expanded is True:
+            boxcol = box.column()
+            boxcol.prop_search(context.scene, "internode_mesh_name", bpy.data, "meshes")
+            boxcol.prop(context.scene, "turtle_line_width")
+            boxcol.prop(context.scene, "turtle_width_growth_factor")
+            boxcol.prop(context.scene, "internode_length_scale")
+            boxsplit = boxcol.split(1/3)
+            boxsplitcol1 = boxsplit.column()
+            boxsplitcol1.prop(context.scene, "bool_draw_nodes")
+            boxsplitcol2 = boxsplit.column()
+            boxsplitcol2.enabled = context.scene.bool_draw_nodes
+            boxsplitcol2.prop_search(context.scene, "node_mesh_name", bpy.data, "meshes", text="")
+            boxcol.prop(context.scene, "bool_recreate_default_meshes")
+            boxcolcol = boxcol.column()
+            boxcolcol.enabled = context.scene.bool_recreate_default_meshes
+            boxcolcol.alert = context.scene.bool_recreate_default_meshes
+            boxcolcol.prop(context.scene, "default_internode_cylinder_vertices")
+            boxcolcol.prop(context.scene, "default_node_icosphere_subdivisions")
         
         col = layout.column()
         col.prop(context.scene, "bool_force_shade_flat")
@@ -74,11 +82,14 @@ class LindenmakerPanel(bpy.types.Panel):
         op_lindenmaker.bool_interpret_lstring = True
         
         box = layout.box()
-        row = box.row()
-        row.prop(context.scene, "section_lstring_expanded",
+        boxlabelcol = box.column()
+        boxlabelcol.scale_y = 1.2
+        boxlabelrow = boxlabelcol.row()
+        boxlabelrow.scale_y = 0.5
+        boxlabelrow.prop(context.scene, "section_lstring_expanded",
             icon="TRIA_DOWN" if context.scene.section_lstring_expanded else "TRIA_RIGHT",
             icon_only=True, emboss=False)
-        row.label(text="Manual L-string Configuration")
+        boxlabelrow.label(text="Stepwise L-string Production")
         if context.scene.section_lstring_expanded is True:
             boxcol = box.column()
             
@@ -118,7 +129,7 @@ class LindenmakerPanel(bpy.types.Panel):
             
             # button to apply one production step and replace the current interpretation result.
             op_interpret_step = boxcol.operator(Lindenmaker.bl_idname,
-                                           text="Produce Step and Reinterpret",
+                                           text="Produce Step and Interpret",
                                            icon='OUTLINER_OB_MESH')
             op_interpret_step.lstring_production_mode = 'PRODUCE_ONE_STEP'
             op_interpret_step.bool_clear_lstring = False
@@ -302,9 +313,9 @@ def register():
         name="Single Object (No Hierarchy, Faster)",
         description="Create a single object instead of a hierarchy tree of objects (faster)",
         default=True)
-        
-    bpy.types.Scene.section_lstring_expanded = bpy.props.BoolProperty(
-        default = False)
+    
+    bpy.types.Scene.section_internode_expanded = bpy.props.BoolProperty(default = False)
+    bpy.types.Scene.section_lstring_expanded = bpy.props.BoolProperty(default = False)
     
 def unregister():
     bpy.utils.unregister_module(__name__)
@@ -330,6 +341,7 @@ def unregister():
     del bpy.types.Scene.bool_force_shade_flat
     del bpy.types.Scene.bool_no_hierarchy
     
+    del bpy.types.Scene.section_internode_expanded
     del bpy.types.Scene.section_lstring_expanded
 
 # This allows you to run the script directly from blenders text editor
