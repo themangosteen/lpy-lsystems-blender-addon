@@ -9,7 +9,7 @@ import imp
 imp.reload(turtle)
     
 def interpret(lstring, default_length = 2.0, 
-                       default_width = 0.5,
+                       default_width = 1.0,
                        default_width_growth_factor=1.05,
                        default_angle = 45.0,
                        default_materialindex = 0):

@@ -61,33 +61,34 @@ _   Increase internode and node object draw radius by fixed amount. Parameters: 
 
 --- THE LINDENMAKER UI PANEL ---
 
-L-Py File Path:
+L-Py File:
     Path of .lpy file containing L-system definition.
     
 Default Turtle Step Size:
-    Default length value for 'F' and 'f' commands if no arguments given.
-Default Turtle Rotation Angle:
-    Default angle in degrees for rotation commands if no argument given.
+    Default length value for 'F' (move turtle and draw) and 'f' (move turtle) commands if no arguments given.
+Default Rotation Angle:
+    Default angle in degrees for turtle rotation commands if no argument given.
     
-Internode Mesh:
+Internode:
     Name of mesh to be used for drawing internodes via the 'F' command.
     Default is "LindenmakerDefaultInternodeMesh", a cylinder mesh generated at first use.
 Default Line Width:
     Default width of internode and node objects drawn via 'F' command.
-Default Width Growth Factor:
+Width Growth Factor:
     Factor by which line width is multiplied via ';' (width increment) command.
     Also used for ','(width decrement) command as 1-(factor-1).
-InternodeLengthScale:
+Internode Length Scale:
     Factor by which move step size is multiplied to yield internode length.
     Used to allow internode length to deviate from step size.
-CHECKBOX Draw Nodes:
-    If enabled, node objects are drawn, and allows selection of a custom node mesh.
+CHECKBOX Nodes:
+    If enabled, the selected node mesh is drawn at branching points.
+    If not enabled uses Empty objects if hierarchy is used.
     Default is "LindenmakerDefaultNodeMesh", an icosphere mesh generated at first use.
 CHECKBOX Recreate Default Internode / Node Meshes:
     If enabled, recreates "LindenmakerDefaultInternodeMesh" and "LindenmakerDefaultNodeMesh",
     according to attribute values specified via the following fields.
 Default Internode Cylinder Vertices:
-    Number base circle vertices for default cylinder "LindenmakerDefaultInternodeMesh".
+    Number of base circle vertices for default cylinder "LindenmakerDefaultInternodeMesh".
 Default Node Icosphere Subdivision:
     Number of subdivision steps for default icosphere "LindenmakerDefaultNodeMesh".
 

@@ -82,7 +82,7 @@ class Turtle:
                 empty.name = "Node"
                 empty.matrix_world *= self.mat
                 self.add_child_to_current_branch_parent(empty)
-                self.current_parent = empty 
+                self.current_parent = empty
                 bpy.ops.object.select_all(action='DESELECT')
         elif bpy.context.scene.bool_draw_nodes:
             # just draw nodes without hierarchy
@@ -181,13 +181,17 @@ class Turtle:
         
     def create_default_internode_mesh(self, vertex_count):
         """Initialize the default cylinder mesh used to draw internodes"""
-        bpy.ops.mesh.primitive_cylinder_add(vertices=vertex_count, radius=0.5)
+        cylinder_radius = 0.5
+        cylinder_length = 1
+        bpy.ops.mesh.primitive_cylinder_add(vertices=vertex_count, 
+                                            radius=cylinder_radius, 
+                                            depth=cylinder_length)
         cyl = bpy.context.object
         # rotate cylinder mesh to point towards x axis and position origin at base
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.transform.rotate(value=radians(90), axis=(0, 1, 0))
-        bpy.ops.transform.translate(value=(1,0,0))
+        bpy.ops.transform.translate(value=(cylinder_length/2,0,0))
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         cyl.data.name = bpy.types.Scene.internode_mesh_name[1]['default']
         # smooth cylinder sides, but not cylinder caps
