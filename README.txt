@@ -20,13 +20,15 @@ Thus the custom version of L-Py has been freed from dependencies to PlantGL whic
 3. place lindenmaker in <blender scripts dir>/addons
 4. start Blender and enable the addon from "Preferenecs" > "Add-ons"
 
+Note: To determine the path of <blender scripts dir> on your system, refer to [5].
+
 
 --- USAGE -----------------------------------------------------------
 
 The Lindenmaker panel can be found in the 3D View Tool Shelf (open via <T> key).
 
 Before using the add-on, a valid L-Py L-system definition file (.lpy) has to be provided.
-For information and examples on how to write these, refer to the official L-Py documentation [5].
+For information and examples on how to write these, refer to the official L-Py documentation [6].
 
 --- SUPPORTED TURTLE COMMANDS ---
 
@@ -163,5 +165,7 @@ To avoid unintentional modifications of global materials that are already used i
     L-Py: An L-System Simulation Framework for Modeling Plant Architecture Development Based on a Dynamic Language.
     2012. Frontiers in Plant Science.
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3362793
+ 
+5.  https://www.blender.org/manual/getting_started/installing/configuration/directories.html
     
-5.  http://openalea.gforge.inria.fr/dokuwiki/doku.php?id=packages:vplants:lpy:doc
+6.  http://openalea.gforge.inria.fr/dokuwiki/doku.php?id=packages:vplants:lpy:doc
