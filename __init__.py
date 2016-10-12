@@ -79,7 +79,7 @@ class LindenmakerPanel(bpy.types.Panel):
         
         op_lindenmaker = layout.operator(Lindenmaker.bl_idname, icon='OUTLINER_OB_MESH')
         op_lindenmaker.lstring_production_mode = 'PRODUCE_FULL'
-        op_lindenmaker.bool_clear_lstring = False
+        op_lindenmaker.bool_clear_lstring = True
         op_lindenmaker.bool_interpret_lstring = True
         
         box = layout.box()
@@ -145,14 +145,17 @@ class Lindenmaker(bpy.types.Operator):
     lstring_production_mode = bpy.props.EnumProperty(
         name="L-string Production Mode",
         description="Mode of operation regarding L-string production.",
-        items=(('PRODUCE_FULL', "Produce Full", "Produce L-string from .lpy file via L-Py. Apply production rules as many times as specified in file, and also do the final homomorphism substitution step.", 0),
-               ('PRODUCE_ONE_STEP', "Produce One Step", "Apply one production step to current L-string", 1),
+        items=(('PRODUCE_FULL', "Produce Full", "Produce L-string from .lpy file via L-Py. "
+                                "Apply production rules as many times as specified in file, "
+                                "and also do the final homomorphism substitution step.", 0),
+               ('PRODUCE_ONE_STEP', "Produce One Step", 
+                                    "Apply one production step to current L-string", 1),
                ('PRODUCE_NONE', "Produce None", "Skip L-string production", 2)),
         default='PRODUCE_FULL')
     bool_clear_lstring = bpy.props.BoolProperty(
         name="Clear L-string",
         description="Clear current L-string",
-        default=False)
+        default=True)
     bool_interpret_lstring = bpy.props.BoolProperty(
         name="Interpret L-string",
         description="Interpret current L-string via graphical turtle interpretation.",
@@ -166,10 +169,9 @@ class Lindenmaker(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
         
-        bpy.ops.object.select_all(action='DESELECT')
+        ##### PRE-OP CLEANUP CONTEXT #####
         
-        # clear turtle state queries created via '?' command
-        bpy.context.scene.turtleStateQueryResults.clear()
+        bpy.ops.object.select_all(action='DESELECT')
         
         # clear scene (for debugging)
         if False: # delete all objects
@@ -184,52 +186,38 @@ class Lindenmaker(bpy.types.Operator):
                 item.user_clear()
                 bpy.data.materials.remove(item)
                 
-        if self.lstring_production_mode != 'PRODUCE_STEP': #TODO self.bool_clear_lstring:
+        if self.bool_clear_lstring:
             scene.lstring_for_production = ""
             scene.lstring_for_interpretation = ""
+            
+        ##### LSTRING PRODUCTION #####
         
         if self.lstring_production_mode != 'PRODUCE_NONE':
+            
             # load L-Py framework lsystem specification file (.lpy)
             if not os.path.isfile(scene.lpyfile_path):
-                self.report({'ERROR_INVALID_INPUT'}, "Input file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.\nFile not found: {}".format(scene.lpyfile_path))
+                self.report({'ERROR_INVALID_INPUT'}, "Input file does not exist! "
+                "Select a valid file path in the Lindenmaker options panel in the tool shelf.\n"
+                "File not found: {}".format(scene.lpyfile_path))
                 return {'CANCELLED'}
             lsys = lpy.Lsystem(scene.lpyfile_path)
+            #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
             
-            newway = True
-            if newway:
-                derivationLength = lsys.derivationLength
-                steps = derivationLength
-                lsys.derivationLength = 1
-                while (steps > 0):
-                    # use current L-string as axiom unless empty
-                    if (scene.lstring_for_production != ""):
-                        lsys.axiom = lpy.AxialTree(scene.lstring_for_production)
-                    # derive lstring via production rules (stored as L-Py AxialTree datastructure)
-                    derivedAxialTree = lsys.derive()
-                    scene.lstring_for_production = str(derivedAxialTree)
-                    # substitute occurrences of e.g. ~(Object) with ~("Object")
-                    # L-Py strips the quotes, but without them production fails.
-                    scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=[,\)])', r'"\1"',
-                                                          scene.lstring_for_production)
-                    scene.lstring_for_interpretation = str(lsys.interpret(lpy.AxialTree(scene.lstring_for_production)))
-                    try:
-                        turtle_interpretation.interpret(scene.lstring_for_interpretation,
-                                                        scene.turtle_step_size, 
-                                                        scene.turtle_line_width,
-                                                        scene.turtle_width_growth_factor,
-                                                        scene.turtle_rotation_angle,
-                                                        dryrun_nodraw=True)
-                    except TurtleInterpretationError as e:
-                        self.report({'ERROR_INVALID_INPUT'}, str(e))
-                        return {'CANCELLED'}
-                    steps -= 1
-            else:
-                #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
-                if self.lstring_production_mode == 'PRODUCE_ONE_STEP':
-                    # use current L-string as axiom unless empty
-                    if (scene.lstring_for_production != ""):
-                        lsys.axiom = lpy.AxialTree(scene.lstring_for_production)
-                    lsys.derivationLength = 1
+            # to allow for turtle state queries between L-Py production steps
+            # we always have to use derivationLength=1 for Lindenmaker to run the queries
+            # before handing back over to L-Py.
+            derivationLengthBackup = lsys.derivationLength
+            if self.lstring_production_mode == 'PRODUCE_ONE_STEP':
+                steps = 1
+            else: # PRODUCE_FULL
+                steps = derivationLengthBackup
+            lsys.derivationLength = 1
+            while (steps > 0):
+                # clear turtle state queries created via '?' command
+                bpy.context.scene.turtleStateQueryResults.clear()
+                # use current L-string as axiom unless empty
+                if (scene.lstring_for_production != ""):
+                    lsys.axiom = lpy.AxialTree(scene.lstring_for_production)
                 # derive lstring via production rules (stored as L-Py AxialTree datastructure)
                 derivedAxialTree = lsys.derive()
                 scene.lstring_for_production = str(derivedAxialTree)
@@ -237,15 +225,32 @@ class Lindenmaker(bpy.types.Operator):
                 # L-Py strips the quotes, but without them production fails.
                 scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=[,\)])', r'"\1"',
                                                       scene.lstring_for_production)
-            
-            lsys.derivationLength = derivationLength
-            # apply homomorphism substituation step.
-            # this is an L-Py feature intended as a postproduction step 
-            # to replace abstract module names by actual interpretation commands.
-            # in L-Py these rules are preceded by keywords "homomorphism:" or "interpretation:",
-            # however this should not be confused with the graphical turtle interpretation!
-            scene.lstring_for_interpretation = str(lsys.interpret(lpy.AxialTree(scene.lstring_for_production)))
+                # apply homomorphism substituation step and store result separately.
+                # this is an L-Py feature intended as a postproduction step 
+                # to replace abstract module names by actual interpretation commands.
+                # in L-Py these rules are preceded by keywords "homomorphism:" or "interpretation:",
+                # however this should not be confused with the graphical turtle interpretation!
+                scene.lstring_for_interpretation = str(lsys.interpret(
+                                                       lpy.AxialTree(scene.lstring_for_production)))
+                # do a dryrun interpretation without drawing any objects to perform the
+                # turtle state queries (via command '?') that can then be accessed 
+                # in the next production step via bpy.context.scene.turtleStateQueryResults
+                try:
+                    turtle_interpretation.interpret(scene.lstring_for_interpretation,
+                                                    scene.turtle_step_size, 
+                                                    scene.turtle_line_width,
+                                                    scene.turtle_width_growth_factor,
+                                                    scene.turtle_rotation_angle,
+                                                    dryrun_nodraw=True)
+                except TurtleInterpretationError as e:
+                    self.report({'ERROR_INVALID_INPUT'}, str(e))
+                    return {'CANCELLED'}
+                steps -= 1
+                
+            lsys.derivationLength = derivationLengthBackup
             #print("DERIVATION RESULT: {}".format(context.scene.lstring_for_interpretation))
+        
+        ##### GRAPHICAL TURTLE INTERPRETATION #####
         
         if self.bool_interpret_lstring:
             if (scene.bool_remove_last_interpretation_result 
@@ -263,9 +268,11 @@ class Lindenmaker(bpy.types.Operator):
                 self.report({'ERROR_INVALID_INPUT'}, str(e))
                 return {'CANCELLED'}
             
+        ##### POST-OP CLEANUP #####
+            
         # reset operator properties to defaults (needed in case op is called from menu)
         self.lstring_production_mode = 'PRODUCE_FULL'
-        self.bool_clear_lstring = False
+        self.bool_clear_lstring = True
         self.bool_interpret_lstring = True
         
         return {'FINISHED'}
