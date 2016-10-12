@@ -168,6 +168,9 @@ class Lindenmaker(bpy.types.Operator):
         
         bpy.ops.object.select_all(action='DESELECT')
         
+        # clear turtle state queries created via '?' command
+        bpy.context.scene.turtleStateQueryResults.clear()
+        
         # clear scene (for debugging)
         if False: # delete all objects
             bpy.ops.object.select_all(action='SELECT')
@@ -181,7 +184,7 @@ class Lindenmaker(bpy.types.Operator):
                 item.user_clear()
                 bpy.data.materials.remove(item)
                 
-        if self.bool_clear_lstring:
+        if self.lstring_production_mode != 'PRODUCE_STEP': #TODO self.bool_clear_lstring:
             scene.lstring_for_production = ""
             scene.lstring_for_interpretation = ""
         
@@ -191,19 +194,51 @@ class Lindenmaker(bpy.types.Operator):
                 self.report({'ERROR_INVALID_INPUT'}, "Input file does not exist! Select a valid file path in the Lindenmaker options panel in the tool shelf.\nFile not found: {}".format(scene.lpyfile_path))
                 return {'CANCELLED'}
             lsys = lpy.Lsystem(scene.lpyfile_path)
-            #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
-            if self.lstring_production_mode == 'PRODUCE_ONE_STEP':
-                # use current L-string as axiom unless empty
-                if (scene.lstring_for_production != ""):
-                    lsys.axiom = lpy.AxialTree(scene.lstring_for_production)
+            
+            newway = True
+            if newway:
+                derivationLength = lsys.derivationLength
+                steps = derivationLength
                 lsys.derivationLength = 1
-            # derive lstring via production rules (stored as L-Py AxialTree datastructure)
-            derivedAxialTree = lsys.derive()
-            scene.lstring_for_production = str(derivedAxialTree)
-            # substitute occurrences of e.g. ~(Object) with ~("Object")
-            # L-Py strips the quotes, but without them production fails.
-            scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=[,\)])', r'"\1"',
-                                                  scene.lstring_for_production)
+                while (steps > 0):
+                    # use current L-string as axiom unless empty
+                    if (scene.lstring_for_production != ""):
+                        lsys.axiom = lpy.AxialTree(scene.lstring_for_production)
+                    # derive lstring via production rules (stored as L-Py AxialTree datastructure)
+                    derivedAxialTree = lsys.derive()
+                    scene.lstring_for_production = str(derivedAxialTree)
+                    # substitute occurrences of e.g. ~(Object) with ~("Object")
+                    # L-Py strips the quotes, but without them production fails.
+                    scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=[,\)])', r'"\1"',
+                                                          scene.lstring_for_production)
+                    scene.lstring_for_interpretation = str(lsys.interpret(lpy.AxialTree(scene.lstring_for_production)))
+                    try:
+                        turtle_interpretation.interpret(scene.lstring_for_interpretation,
+                                                        scene.turtle_step_size, 
+                                                        scene.turtle_line_width,
+                                                        scene.turtle_width_growth_factor,
+                                                        scene.turtle_rotation_angle,
+                                                        dryrun_nodraw=True)
+                    except TurtleInterpretationError as e:
+                        self.report({'ERROR_INVALID_INPUT'}, str(e))
+                        return {'CANCELLED'}
+                    steps -= 1
+            else:
+                #print("LSYSTEM DEFINITION: {}".format(lsys.__str__()))
+                if self.lstring_production_mode == 'PRODUCE_ONE_STEP':
+                    # use current L-string as axiom unless empty
+                    if (scene.lstring_for_production != ""):
+                        lsys.axiom = lpy.AxialTree(scene.lstring_for_production)
+                    lsys.derivationLength = 1
+                # derive lstring via production rules (stored as L-Py AxialTree datastructure)
+                derivedAxialTree = lsys.derive()
+                scene.lstring_for_production = str(derivedAxialTree)
+                # substitute occurrences of e.g. ~(Object) with ~("Object")
+                # L-Py strips the quotes, but without them production fails.
+                scene.lstring_for_production = re.sub(r'(?<=~\()(\w*)(?=[,\)])', r'"\1"',
+                                                      scene.lstring_for_production)
+            
+            lsys.derivationLength = derivationLength
             # apply homomorphism substituation step.
             # this is an L-Py feature intended as a postproduction step 
             # to replace abstract module names by actual interpretation commands.
@@ -237,6 +272,13 @@ class Lindenmaker(bpy.types.Operator):
 
 def menu_func(self, context):
     self.layout.operator(Lindenmaker.bl_idname, icon='PLUGIN')
+
+class TurtleStateQuery(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty(name="Query Name", default="Unnamed Query")
+    heading = bpy.props.FloatVectorProperty(name="Turtle Heading Vector", size=3)
+    up = bpy.props.FloatVectorProperty(name="Turtle Up Vector", size=3)
+    left = bpy.props.FloatVectorProperty(name="Turtle Left Vector", size=3)
+    pos = bpy.props.FloatVectorProperty(name="Turtle Position", size=3)
 
 def register():
     bpy.utils.register_module(__name__)
@@ -327,6 +369,10 @@ def register():
         name="Remove Last Interpretation Result",
         description="When running the graphical turtle interpretation, the result from the previous interpretation is removed.\nUseful for stepwise production and interpretation, to avoid cluttering the scene.",
         default=False)
+        
+    bpy.types.Scene.turtleStateQueryResults = bpy.props.CollectionProperty(
+        type=TurtleStateQuery,
+        description="List of TurtleStateQuery objects containing the state of the turtle determined by each query command, i.e. heading, up, left and position vectors at each query module '?' in order of occurrence in the interpreted lstring. This can be used in L-Py code to influence production based on the turtle state after each production step.")
     
     bpy.types.Scene.section_internode_expanded = bpy.props.BoolProperty(default = False)
     bpy.types.Scene.section_lstring_expanded = bpy.props.BoolProperty(default = False)
@@ -356,6 +402,8 @@ def unregister():
     del bpy.types.Scene.bool_force_shade_flat
     del bpy.types.Scene.bool_no_hierarchy
     del bpy.types.Scene.bool_remove_last_interpretation_result
+    
+    del bpy.types.Scene.turtleStateQueryResults
     
     del bpy.types.Scene.section_internode_expanded
     del bpy.types.Scene.section_lstring_expanded

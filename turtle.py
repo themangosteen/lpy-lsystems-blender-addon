@@ -5,18 +5,71 @@ from mathutils import Vector, Matrix
 from lindenmaker.turtle_interpretation_error import TurtleInterpretationError
 
 class Turtle:
+    """This is the base class of the turtle that does not create any objects, but can be used to perform a dry-run interpretation to query the turtle state at different moments"""
     
     def __init__(self, _linewidth, _materialindex):
-        scene = bpy.context.scene
         # turtle state consists of a 4x4 matrix and some drawing attributes
         self.mat = Matrix()
         self.linewidth = _linewidth
         self.materialindex = _materialindex
-        self.current_parent = None # parent of objects on current branch
         # stack to save and restore turtle state
         self.stack = []
+        # number of state queries already performed
+        self.turtleStateQueryCount = 0
         
-        # get mesh to use to draw internodes (mesh reuse to save memory)
+    def push(self):
+        """Push turtle state to stack"""
+        # push state to stack
+        self.stack.append((self.mat.copy(), self.linewidth, self.materialindex))
+        
+    def pop(self):
+        """Pop last turtle state from stack and use as current"""
+        (self.mat, self.linewidth, self.materialindex) = self.stack.pop()
+
+    def move(self, stepsize):
+        """Move turtle in its heading direction."""
+        vec = self.mat * Vector((stepsize,0,0,0))
+        self.mat.col[3] += vec 
+        
+    def turn(self, angle_degrees):
+        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'Z')
+    def pitch(self, angle_degrees):
+        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'Y')
+    def roll(self, angle_degrees):
+        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'X')
+        
+    def draw_internode_module(self, length=None, width=None):
+        """DELIBERATRELY NOT IMPLEMENTED"""
+        pass
+    
+    def draw_module_from_custom_object(self, objname=None, objscale=None):
+        """DELIBERATRELY NOT IMPLEMENTED"""
+        pass
+    
+    def queryTurtleState(self):
+        """Add the current turtle state (heading, up, left, position vectors) to the collection of turtle state queries."""
+        mat = self.mat.copy()
+        turtleStateQuery = bpy.context.scene.turtleStateQueryResults.add()
+        turtleStateQuery.name    = "Turtle State Query #{}".format(self.turtleStateQueryCount)
+        turtleStateQuery.heading = (mat.col[0].x, mat.col[0].y, mat.col[0].z)
+        turtleStateQuery.up      = (mat.col[1].x, mat.col[1].y, mat.col[1].z)
+        turtleStateQuery.left    = (mat.col[2].x, mat.col[2].y, mat.col[2].z)
+        turtleStateQuery.pos     = (mat.col[3].x, mat.col[3].y, mat.col[3].z)
+        
+        self.turtleStateQueryCount += 1
+        #print("Turtle Position: {}".format(turtleStateQuery.pos[:]))
+
+
+class DrawingTurtle(Turtle):
+    """Subtype of the Turtle base class with implemented drawing functions"""
+    
+    def __init__(self, _linewidth, _materialindex):
+        super().__init__(_linewidth, _materialindex)
+        
+        scene = bpy.context.scene
+        self.current_parent = None # parent of objects on current branch
+        
+        # get mesh used to draw internodes (mesh reuse to save memory)
         default_internode_mesh_name = bpy.types.Scene.internode_mesh_name[1]['default']
         if scene.internode_mesh_name not in bpy.data.meshes.keys():
             # custom mesh not found, revert to default
@@ -32,7 +85,7 @@ class Turtle:
             scene.internode_mesh_name = default_internode_mesh_name
         self.internode_mesh = bpy.data.meshes[scene.internode_mesh_name]
             
-        # get mesh to used to draw nodes (mesh reuse to save memory)
+        # get mesh used to draw nodes (mesh reuse to save memory)
         default_node_mesh_name = bpy.types.Scene.node_mesh_name[1]['default']
         if scene.node_mesh_name not in bpy.data.meshes.keys():
             # custom mesh not found, revert to default
@@ -91,18 +144,6 @@ class Turtle:
     def pop(self):
         """Pop last turtle state from stack and use as current"""
         (self.mat, self.linewidth, self.materialindex, self.current_parent) = self.stack.pop()
-
-    def move(self, stepsize):
-        """Move turtle in its heading direction."""
-        vec = self.mat * Vector((stepsize,0,0,0))
-        self.mat.col[3] += vec 
-        
-    def turn(self, angle_degrees):
-        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'Z')
-    def pitch(self, angle_degrees):
-        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'Y')
-    def roll(self, angle_degrees):
-        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'X')
         
     def draw_internode_module(self, length, width=None):
         """Draw internode object instance in current turtle coordinate system."""

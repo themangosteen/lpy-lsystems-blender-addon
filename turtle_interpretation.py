@@ -12,10 +12,18 @@ def interpret(lstring, default_length = 2.0,
                        default_width = 1.0,
                        default_width_growth_factor=1.05,
                        default_angle = 45.0,
-                       default_materialindex = 0):
-    """Create graphical representation of L-string via Turtle Interpretation. NOTE: Commands that are not supported will be ignored and not raise an error."""
+                       default_materialindex = 0,
+                       dryrun_nodraw = False):
+    """Create geometrical representation of L-string via Turtle Interpretation. NOTE: Commands that are not supported will be ignored and not raise an error."""
     
-    t = turtle.Turtle(default_width, default_materialindex)
+    # the option dryrun_nodraw is set, the turtle moves but does not draw any objects.
+    # this is useful to do state queries at different moments via the '?' command
+    # without the overhead of the drawing functions
+    if dryrun_nodraw:
+        t = turtle.Turtle(default_width, default_materialindex) # turtle base class that doesnt draw
+        #print("TURTLE INTERPRETATION DRYRUN")
+    else:
+        t = turtle.DrawingTurtle(default_width, default_materialindex)
     
     # remove all whitespace
     lstring = "".join(lstring.split())
@@ -63,6 +71,7 @@ def interpret(lstring, default_length = 2.0,
                 raise TurtleInterpretationError(
                       "Invalid number of arguments for command '['"
                       " (push current turtle state to stack).\n"
+                      "This command does not take any arguments.\n"
                       "Usage: '['")
         elif cmd[0] == ']':
             # restore turtle state from stack
@@ -72,6 +81,7 @@ def interpret(lstring, default_length = 2.0,
                 raise TurtleInterpretationError(
                       "Invalid number of arguments for command ']'"
                       " (restore turtle state from stack).\n"
+                      "This command does not take any arguments.\n"
                       "Usage: ']'")
         
         # rotate commands (turn, pitch, roll)
@@ -135,6 +145,7 @@ def interpret(lstring, default_length = 2.0,
             else: 
                 raise TurtleInterpretationError(
                       "Invalid number of arguments for command '|' (turn halfway around).\n"
+                      "This command does not take any arguments.\n"
                       "Usage: '|'")
         
         # drawing attributes
@@ -198,10 +209,21 @@ def interpret(lstring, default_length = 2.0,
                       "Invalid number of arguments for command '~' (draw custom object).\n"
                       "Usage: '~(\"Object\")' or '~(\"Object\", scale)'"
                       " or '~(\"Object\", scale_x, scale_y, scale_z)'")
-
-    t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y') # rotate object to stand upright
-    t.root.name = "Root" # changed to "Root.xxx" on name collision
-    bpy.context.scene.last_interpretation_result_objname = t.root.name
+                      
+        elif cmd[0] == '?':
+            if len(args) == 0:
+                t.queryTurtleState()
+            else:
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '?'"
+                      " (query turtle state).\n"
+                      "This command does not take any arguments.\n"
+                      "Usage: '?'")
+                
+    if not dryrun_nodraw:
+        t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y') # rotate object to stand upright
+        t.root.name = "Root" # changed to "Root.xxx" on name collision
+        bpy.context.scene.last_interpretation_result_objname = t.root.name
     
 def applyCuts(lstring):
     """Remove branch segments following a cut command ('%') until their end of branch (i.e. until next unmatched closing bracket or end of string"""

@@ -34,6 +34,7 @@ For information and examples on how to write these, refer to the official L-Py d
 
 NOTE: The Lindenmaker add-on does not support all turtle interpretation commands allowed by the original L-Py framework. The .lpy file used for L-string production can contain any of the elements related to L-Py, as long as the resulting L-string used for turtle interpretation contains no other than the commands listed in the following.
 Other commands than those listed below will typically yield no error but are ignored and have no effect.
+Importantly, only single character module names are supported.
 
 The turtle state consists of a 4x4 matrix storing its position and three perpendicular vectors (heading, left and up) defining its orientation (local coordinate system), as well as some attributes related to drawing. Note that drawing attributes can be adjusted via the UI.
 Turtle state is altered via commands corresponding to letters in the L-string, as it is read from left to right during turtle interpretation.
