@@ -14,8 +14,6 @@ class Turtle:
         self.materialindex = _materialindex
         # stack to save and restore turtle state
         self.stack = []
-        # number of state queries already performed
-        self.turtleStateQueryCount = 0
         
     def push(self):
         """Push turtle state to stack"""
@@ -45,19 +43,6 @@ class Turtle:
     def draw_module_from_custom_object(self, objname=None, objscale=None):
         """DELIBERATRELY NOT IMPLEMENTED"""
         pass
-    
-    def queryTurtleState(self):
-        """Add the current turtle state (heading, up, left, position vectors) to the collection of turtle state queries."""
-        mat = self.mat.copy()
-        turtleStateQuery = bpy.context.scene.turtleStateQueryResults.add()
-        turtleStateQuery.name    = "Turtle State Query #{}".format(self.turtleStateQueryCount)
-        turtleStateQuery.heading = (mat.col[0].x, mat.col[0].y, mat.col[0].z)
-        turtleStateQuery.up      = (mat.col[1].x, mat.col[1].y, mat.col[1].z)
-        turtleStateQuery.left    = (mat.col[2].x, mat.col[2].y, mat.col[2].z)
-        turtleStateQuery.pos     = (mat.col[3].x, mat.col[3].y, mat.col[3].z)
-        
-        self.turtleStateQueryCount += 1
-        #print("Turtle Position: {}".format(turtleStateQuery.pos[:]))
 
 
 class DrawingTurtle(Turtle):

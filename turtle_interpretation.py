@@ -33,6 +33,8 @@ def interpret(lstring, default_length = 2.0,
     # e.g. "F(230,24)F[+(45)F]F" will yield ['F(230,24)', 'F', '[', '+(45)', 'F', ']', 'F']
     commands = re.findall(r"[^()](?:\([^()]*\))?", lstring)
     
+    turtle_query_command_count = 0
+    
     for cmd in commands:
         
         args = extractArgs(cmd)
@@ -210,15 +212,31 @@ def interpret(lstring, default_length = 2.0,
                       "Usage: '~(\"Object\")' or '~(\"Object\", scale)'"
                       " or '~(\"Object\", scale_x, scale_y, scale_z)'")
                       
+        # query turtle state (position, heading, up or left vector)
         elif cmd[0] == '?':
-            if len(args) == 0:
-                t.queryTurtleState()
+            turtle_query_command_count += 1
+            
+            if len(args) == 4:
+                
+                querycol = 0
+
+                if args[0] == 'H':
+                    querycol = 0
+                elif args[0] == 'U':
+                    querycol = 1
+                elif args[0] == 'L':
+                    querycol = 2
+                elif args[0] == 'P':
+                    querycol = 3
+                
+                bpy.context.scene.lstring_for_production = replace_nth(bpy.context.scene.lstring_for_production, r'\?\([^()]*\)', '?("{}",{},{},{})'.format(args[0], t.mat.col[querycol].x, t.mat.col[querycol].y, t.mat.col[querycol].z), turtle_query_command_count-1)    
+                
             else:
                 raise TurtleInterpretationError(
                       "Invalid number of arguments for command '?'"
                       " (query turtle state).\n"
-                      "This command does not take any arguments.\n"
-                      "Usage: '?'")
+                      "Usage: '?(\"P|H|U|L\",0,0,0)' for position, heading, up or left vector.\n"
+                      "The values 0,0,0 will be replaced by the x,y,z respective vector values.")
                 
     if not dryrun_nodraw:
         t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y') # rotate object to stand upright
@@ -269,3 +287,10 @@ def extractArgs(command):
         except ValueError:
             result.append(arg) # else just add string argument
     return result
+
+def replace_nth(string, pattern, replacement, n):
+    where = [m.start() for m in re.finditer(pattern, string)][n]
+    before = string[:where]
+    after = string[where:]
+    after = re.sub(pattern, replacement, after, 1)
+    return before + after
