@@ -212,6 +212,18 @@ def interpret(lstring, default_length = 2.0,
                       "Usage: '~(\"Object\")' or '~(\"Object\", scale)'"
                       " or '~(\"Object\", scale_x, scale_y, scale_z)'")
                       
+        # turtle lookAt function
+        elif cmd[0] == '@':
+            if len(args) == 3:
+                t.look_at(Vector((args[0], args[1], args[2])))
+            else:
+                raise TurtleInterpretationError(
+                      "Invalid number of arguments for command '@' (turtle look at).\n"
+                      "Usage: '@(x, y, z)'"
+                      "The heading vector will point toward x, y, z"
+                      " and the heading, up, and left vectors will have the same"
+                      " relative orientation (handedness) as before.")
+                      
         # query turtle state (position, heading, up or left vector)
         elif cmd[0] == '?':
             turtle_query_command_count += 1
@@ -239,7 +251,6 @@ def interpret(lstring, default_length = 2.0,
                       "The values 0,0,0 will be replaced by the x,y,z respective vector values.")
                 
     if not dryrun_nodraw:
-        t.root.matrix_world *= Matrix.Rotation(radians(-90), 4, 'Y') # rotate object to stand upright
         t.root.name = "Root" # changed to "Root.xxx" on name collision
         bpy.context.scene.last_interpretation_result_objname = t.root.name
     

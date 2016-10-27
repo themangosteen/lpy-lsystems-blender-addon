@@ -36,6 +36,38 @@ class Turtle:
     def roll(self, angle_degrees):
         self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'X')
         
+    def look_at(self, target):
+        """
+        Let turtle look at a given 3D targed vector point.
+        The heading vector will point toward x, y, z 
+        and the heading, up, and left vectors will have the same
+        relative orientation (handedness) as before.
+        """
+        turtle_pos = self.mat.col[3].xyz
+        turtle_to_target = target - turtle_pos
+        turtle_to_target.normalize()
+        result_mat = Matrix()
+        
+        # position stays same
+        result_mat.col[3] = self.mat.col[3]
+        
+        # heading towards target
+        result_mat.col[0] = turtle_to_target.resized(4)
+        
+        # use old up vector to compute orthogonal left vector
+        # the cross product defaults to right hand order but we store a left vector
+        # thus we negate the cross product vector
+        old_up = self.mat.col[1].xyz.normalized()
+        left = Vector.cross(old_up, turtle_to_target).normalized()
+        result_mat.col[2] = left.resized(4)
+        
+        # compute new up vector from left and heading vector
+        # since the left and new up vectors were constructed using the same left hand order
+        # the left hand order is preserved. 
+        result_mat.col[1] = Vector.cross(left, turtle_to_target).normalized().resized(4)
+    
+        self.mat = result_mat
+        
     def draw_internode_module(self, length=None, width=None):
         """DELIBERATRELY NOT IMPLEMENTED"""
         pass
