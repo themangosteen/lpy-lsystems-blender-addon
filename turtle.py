@@ -14,6 +14,9 @@ class Turtle:
         self.materialindex = _materialindex
         # stack to save and restore turtle state
         self.stack = []
+        # rotate such that heading is in +Z (we want to grow upwards in blender)
+        # we thus have heading = +Z, left = -Y, up = +X
+        self.mat *= Matrix.Rotation(radians(270), 4, 'Y') 
         
     def push(self):
         """Push turtle state to stack"""
