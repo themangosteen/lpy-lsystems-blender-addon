@@ -221,7 +221,7 @@ def interpret(lstring, default_length = 2.0,
                       "Invalid number of arguments for command '@' (turtle look at).\n"
                       "Usage: '@(x, y, z)'"
                       "The heading vector will point toward x, y, z"
-                      " and the heading, up, and left vectors will have the same"
+                      " and the heading, left, and up vectors will have the same"
                       " relative orientation (handedness) as before.")
                       
         # query turtle state (heading, left, up or position vector)
