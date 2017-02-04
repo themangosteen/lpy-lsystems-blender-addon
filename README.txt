@@ -1,5 +1,5 @@
 LINDENMAKER ADDON HELP
-for Blender 2.7x
+tested with Blender 2.7x, should also work with more recent versions
 
 
 --- INTRODUCTION ----------------------------------------------------
@@ -140,7 +140,7 @@ BUTTON Produce Step and Interpret
     Apply one production step and interpret (for convenience).
 
 
---- A NOTE ON MATERIALS ---
+--- MATERIALS ---
 
 Lindenmaker adds material slots to the internode and objects or the respective mesh polygons if no hierarchy used, and assigns existing materials from the global material list (which is usually sorted alphabetically) by the currently set turtle material index!
 Thus basically random materials will be applied initially.

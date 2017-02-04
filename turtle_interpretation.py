@@ -224,7 +224,7 @@ def interpret(lstring, default_length = 2.0,
                       " and the heading, up, and left vectors will have the same"
                       " relative orientation (handedness) as before.")
                       
-        # query turtle state (position, heading, up or left vector)
+        # query turtle state (heading, left, up or position vector)
         elif cmd[0] == '?':
             turtle_query_command_count += 1
             
@@ -234,20 +234,20 @@ def interpret(lstring, default_length = 2.0,
 
                 if args[0] == 'H':
                     querycol = 0
-                elif args[0] == 'U':
-                    querycol = 1
                 elif args[0] == 'L':
+                    querycol = 1
+                elif args[0] == 'U':
                     querycol = 2
                 elif args[0] == 'P':
                     querycol = 3
                 
-                bpy.context.scene.lstring_for_production = replace_nth(bpy.context.scene.lstring_for_production, r'\?\([^()]*\)', '?("{}",{},{},{})'.format(args[0], t.mat.col[querycol].x, t.mat.col[querycol].y, t.mat.col[querycol].z), turtle_query_command_count-1)    
+                bpy.context.scene.lstring_for_production = replace_nth(bpy.context.scene.lstring_for_production, r'\?\([^()]*\)', '?("{}",{},{},{})'.format(args[0], t.mat.col[querycol].x, t.mat.col[querycol].y, t.mat.col[querycol].z), turtle_query_command_count-1)
                 
             else:
                 raise TurtleInterpretationError(
                       "Invalid number of arguments for command '?'"
                       " (query turtle state).\n"
-                      "Usage: '?(\"P|H|U|L\",0,0,0)' for position, heading, up or left vector.\n"
+                      "Usage: '?(\"H|L|U|P\",0,0,0)' for heading, left, up or position vector.\n"
                       "The values 0,0,0 will be replaced by the x,y,z respective vector values.")
                 
     if not dryrun_nodraw:
