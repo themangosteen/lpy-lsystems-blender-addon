@@ -112,12 +112,12 @@ class LindenmakerPanel(bpy.types.Panel):
             
             # text field to inspect and edit lstring used for production via copy/paste.
             # this L-string is not used for interpretation (no homomorphism rules applied).
-            boxcol.label("L-string for Production:")
+            boxcol.label("L-string for Production (after " + str(context.scene.number_production_steps_done) + " steps):")
             boxcol.prop(context.scene, "lstring_for_production", text="")
             
             # text field to inspect and edit final lstring via copy/paste.
             # this L-string is used for interpretation and has homomorphism rules applied (if any).
-            boxcol.label("Homomorphism (For Interpretation):")
+            boxcol.label("Homomorphism (for Interpretation):")
             boxcol.prop(context.scene, "lstring_for_interpretation", text="")
             
             # button to do interpretation only (no production)
@@ -189,6 +189,7 @@ class Lindenmaker(bpy.types.Operator):
         if self.bool_clear_lstring:
             scene.lstring_for_production = ""
             scene.lstring_for_interpretation = ""
+            scene.number_production_steps_done = 0
             
         ##### LSTRING PRODUCTION #####
         
@@ -224,6 +225,8 @@ class Lindenmaker(bpy.types.Operator):
                 # L-Py strips the quotes, but without them production fails.
                 scene.lstring_for_production = re.sub(r'(?<=[~\?]\()(\w*)(?=[,\)])', r'"\1"',
                                                       scene.lstring_for_production)
+                scene.number_production_steps_done += 1
+
                 # apply homomorphism substituation step and store result separately.
                 # this is an L-Py feature intended as a postproduction step 
                 # to replace abstract module names by actual interpretation commands.
@@ -299,6 +302,10 @@ def register():
     bpy.types.Scene.last_interpretation_result_objname = bpy.props.StringProperty(
         name="Last Interpretation Result Object Name", 
         description="Name of the object resulting from the last graphical turtle interpretation.")
+    bpy.types.Scene.number_production_steps_done = bpy.props.IntProperty(
+        name="Number of production steps already done.", 
+        description="Number of production steps already done to produce the current L-string.",
+        default=0)
         
     bpy.types.Scene.turtle_step_size = bpy.props.FloatProperty(
         name="Default Turtle Step Size", 
@@ -383,6 +390,7 @@ def unregister():
     del bpy.types.Scene.lstring_for_production
     del bpy.types.Scene.lstring_for_interpretation
     del bpy.types.Scene.last_interpretation_result_objname
+    del bpy.types.Scene.number_production_steps_done
     
     del bpy.types.Scene.turtle_step_size
     del bpy.types.Scene.turtle_rotation_angle
