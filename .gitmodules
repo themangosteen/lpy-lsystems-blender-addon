@@ -1,0 +1,3 @@
+[submodule "lpy-lsystems-adapted"]
+	path = lpy-lsystems-adapted
+	url = https://github.com/mangostaniko/lpy-lsystems-adapted
