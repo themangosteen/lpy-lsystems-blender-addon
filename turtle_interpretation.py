@@ -255,7 +255,7 @@ def interpret(lstring, default_length = 2.0,
         bpy.context.scene.last_interpretation_result_objname = t.root.name
     
 def applyCuts(lstring):
-    """Remove branch segments following a cut command ('%') until their end of branch (i.e. until next unmatched closing bracket or end of string"""
+    """Remove branch segments following a cut command ('%') until the end of branch (i.e. until next unmatched closing bracket or end of string"""
     segments_to_cut = []
     searching_end_of_branch = False
     bracketBalance = 0

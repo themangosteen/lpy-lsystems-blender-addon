@@ -104,7 +104,7 @@ CHECKBOX Remove Last Interpretation Result:
     If enabled, the result from the previous interpretation is removed.
     Useful for stepwise production and interpretation, to avoid cluttering the scene.
     
-BUTTON Add Mesh via Lindenmayer System
+BUTTON Add Mesh via Lindenmayer System:
     Do the whole process from L-system definition to graphical interpretation!
     Pass .lpy file to L-Py to produce L-string.
     Apply production rules as many times as specified in file,
@@ -117,9 +117,9 @@ BUTTON Clear Current L-strings:
     Note that while the L-system yields just one L-string, two copies of the L-string 
     are stored: One used for production and one used for graphical turtle interpretation.
     See below for details.
-BUTTON Apply One Production Step
-    Apply one production step to current L-string, or if none, to the L-system axiom.
-    No graphical turtle interpretation.
+BUTTON Apply One Production Step:
+    Apply a single production step to current L-string, or to axiom in first production step. 
+    No graphical turtle interpretation is done.
 TEXTBOX L-string for Production:
     The produced L-string used for further stepwise production.
     Edit via copy/paste.
@@ -133,18 +133,16 @@ TEXTBOX Homomorphism (For Interpretation):
     however this should not be confused with the graphical turtle interpretation!
     Once homomorphisms are applied the L-string cant be used for stepwise production,
     thus two L-strings have to be stored.
-BUTTON Interpret L-string via Turtle Graphics
+BUTTON Interpret L-string via Turtle Graphics:
     Interpret current L-string via graphical turtle interpretation.
     No production.
-BUTTON Produce Step and Interpret
-    Apply one production step and interpret (for convenience).
+BUTTON Produce Step and Interpret:
+    Apply a single production step and interpret.
 
 
 --- MATERIALS ---
 
-Lindenmaker adds material slots to the internode and objects or the respective mesh polygons if no hierarchy used, and assigns existing materials from the global material list (which is usually sorted alphabetically) by the currently set turtle material index!
-Thus basically random materials will be applied initially.
-The idea is that the important thing is to add material slots which can then be edited afterwards (as specifying materials before interpretation would make it impossible to preview the result).
+Lindenmaker adds material slots to the default internode object (or for corresponding mesh polygons if a single object is produced) and alphabetically assigns existing materials to them from the material list of the Blender scene depending on the currently set turtle material index. Thus basically, random materials will be applied initially. The idea is that these generated material slots can then be edited after interpretation, when the result is inspected.
 To avoid unintentional modifications of global materials that are already used in other objects (shared materials might be intended but not always), a "single user" copy of the material can be made from the materials panel.
 
 
