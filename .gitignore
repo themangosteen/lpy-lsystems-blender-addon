@@ -1,9 +1,3 @@
 # GITIGNORE
-# ignore all except the files marked with pattern negation symbol '!'
-*
-!.gitignore
-!*.py
-!*.txt
-!*.lpy
-!lpy-lsystems-adapted
-!images
+screenshots
+__pycache__
