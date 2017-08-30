@@ -13,7 +13,7 @@ tested with Blender 2.7x, should also work with more recent versions
 
 
 INTRODUCTION
---------------------
+-------------------
 
 Lindenmaker is an add-on to visualize structures produced via Lindenmayer systems (L-systems) and Turtle Interpretation in Blender. For a basic introduction to Lindenmayer systems and Turtle Interpretation, refer to the Wikipedia [1] as well as the seminal work by Lindenmayer and Prusinkiewicz [2] and Hanan [3].
 
@@ -55,25 +55,41 @@ Turtle state is altered via commands corresponding to letters in the L-string, a
 Some of these commands take arguments, most of them optional, which if used should be enclosed in parentheses and separated by commas, e.g. `F(2,0.5)`. If no arguments are given, default values are assumed. Details are noted in the following.
 
 `F`   Move turtle in its heading direction and draw internode object between last and new position. Parameters: length (float, optional), internode radius (float, optional).
+
 `f`   Move turtle in its heading direction without drawing. Parameters: length (float, optional).
 
+
 `[`   Push current turtle state to the stack (and if enabled from ui draw node object).
+
 `]`   Pop last turtle state from stack and use as current.
 
+
 `+`  Turn left around the up vector. Parameters: angle (float, optional)
+
 `-`  Turn right around the up vector. Parameters: angle (float, optional)
+
 `^`  Pitch up around the left vector. Parameters: angle (float, optional)
+
 `&`  Pitch down around the left vector. Parameters: angle (float, optional)
+
 `/`  Roll left around the heading vector. Parameters: angle (float, optional)
+
 `\`   Roll right around the heading vector. Parameters: angle (float, optional)
+
 `|`   Turn halfway around the up vector.
 
+
 `_`   Increase internode and node object draw radius by fixed amount. Parameters: radius (float, optional, if given by convention set to this value instead of increment).
+
 `!`   Decrease internode and node object draw radius by fixed amount. Parameters: radius (float, optional, if given by convention set to this value instead of decrement).
+
 `;`   Increment material index for internode and node objects. Parameters: materialindex (integer, optional, if given by convention set to this value instead of increment).
+
 `,`   Decrement material index for internode and node objects. Parameters: materialindex (integer, optional, if given by convention set to this value instead of decrement).
 
+
 `%`   Remove remainder of current branch (until next unmatched closing bracket or end of string).
+
 `~`   Draw custom object in current turtle context. Parameters: objectname (string, REQUIRED, e.g. "Leaf", must be name of an existing object in the Blender scene), scale (float, optional, instead of one scale factor, three separate x y z scale arguments can be given, i.e. `~("Object", scale)` or `~("Object", scale_x, scale_y, scale_z)`).
 
 THE LINDENMAKER UI PANEL
@@ -81,44 +97,58 @@ THE LINDENMAKER UI PANEL
 
 **L-Py File:**
     Path of .lpy file containing L-system definition.
-    
+
+
 **Default Turtle Step Size:**
     Default length value for `F` (move turtle and draw) and `f` (move turtle) commands if no arguments given.
+
 **Default Rotation Angle:**
     Default angle in degrees for turtle rotation commands if no argument given.
-    
+
+
 **Internode:**
     Name of mesh to be used for drawing internodes via the `F` command.
     Default is "LindenmakerDefaultInternodeMesh", a cylinder mesh generated at first use.
+
 **Default Line Width:**
     Default width of internode and node objects drawn via `F` command.
+
 **Width Growth Factor:**
     Factor by which line width is multiplied via `;` (width increment) command.
     Also used for `,` (width decrement) command as 1-(factor-1).
+
 **Internode Length Scale:**
     Factor by which move step size is multiplied to yield internode length.
     Used to allow internode length to deviate from step size.
+
 **CHECKBOX Nodes:**
     If enabled, the selected node mesh is drawn at branching points.
     If not enabled uses Empty objects if hierarchy is used.
     Default is "LindenmakerDefaultNodeMesh", an icosphere mesh generated at first use.
+
 **CHECKBOX Recreate Default Internode / Node Meshes:**
     If enabled, recreates "LindenmakerDefaultInternodeMesh" and **"LindenmakerDefaultNodeMesh",**
     according to attribute values specified via the following fields.
+
 **Default Internode Cylinder Vertices:**
     Number of base circle vertices for default cylinder "LindenmakerDefaultInternodeMesh".
+
 **Default Node Icosphere Subdivision:**
     Number of subdivision steps for default icosphere "LindenmakerDefaultNodeMesh".
 
+
 **CHECKBOX Force Flat Shading:**
     Force flat shading for all parts of the generated structure.
+
 **CHECKBOX Single Object (No Hierarchy, Faster)**
     If enabled, generate a single object with a single joined mesh. Significantly faster.
     If disabled, generate a branching hierarchy of objects (internode/node meshes are shared).
+
 **CHECKBOX Remove Last Interpretation Result:**
     If enabled, the result from the previous interpretation is removed.
     Useful for stepwise production and interpretation, to avoid cluttering the scene.
-    
+
+
 **BUTTON Add Mesh via Lindenmayer System:**
     Do the whole process from L-system definition to graphical interpretation!
     Pass .lpy file to L-Py to produce L-string.
@@ -126,17 +156,22 @@ THE LINDENMAKER UI PANEL
     then apply homomorphism substitution rules.
     Finally create a graphical interpretation of the L-string based on the UI options.
     
+
 The following elements can be found in the "Stepwise L-string Production" section.
+
 **BUTTON Clear Current L-strings:**
     Clear the currently stored L-strings. 
     Note that while the L-system yields just one L-string, two copies of the L-string are stored: One used for production and one used for graphical turtle interpretation.
     See below for details.
+
 **BUTTON Apply One Production Step:**
     Apply a single production step to current L-string, or to axiom in first production step. 
     No graphical turtle interpretation is done.
+
 **TEXTBOX L-string for Production:**
     The produced L-string used for further stepwise production.
     Edit via copy/paste.
+
 **TEXTBOX Homomorphism (For Interpretation):**
     The same produced L-string but with homomorphism substitution rules applied (if given), 
     used for graphical turtle interpretation.
@@ -147,9 +182,11 @@ The following elements can be found in the "Stepwise L-string Production" sectio
     however this should not be confused with the graphical turtle interpretation!
     Once homomorphisms are applied the L-string cant be used for stepwise production,
     thus two L-strings have to be stored.
+
 **BUTTON Interpret L-string via Turtle Graphics:**
     Interpret current L-string via graphical turtle interpretation.
     No production.
+
 **BUTTON Produce Step and Interpret:**
     Apply a single production step and interpret.
 
@@ -167,7 +204,8 @@ REFERENCES
 1.  https://en.wikipedia.org/wiki/L-system
 
 2.  P. Prusinkiewicz, A. Lindenmayer:
-    The Algorithmic Beauty of Plants. 1990. Springer. http://algorithmicbotany.org/papers/#abop
+    The Algorithmic Beauty of Plants. 1990. Springer. 
+    http://algorithmicbotany.org/papers/#abop
     
 3.  J. Hanan:
     Parametric L-Systems and their Application to the Modelling and Visualization of Plants. 1992. Ph.D. dissertation, University of Regina.
