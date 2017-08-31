@@ -4,7 +4,7 @@ Algorithmic Botany via Lindenmayer Systems in Blender
 This project was developed as part of a TU Vienna Bachelor thesis on the use of L-systems inside of the open source 3D computer graphics software Blender. The thesis describes applications of the code prodived in this project for specific use cases of L-system modeling in Blender and specifically to environmental interaction of a growing structure with a Blender scene. 
 
 The full thesis is available as PDF:
-https://www.cg.tuwien.ac.at/research/publications/2017/LEOPOLD-2017-ALG/
+https://www.cg.tuwien.ac.at/research/publications/2017/LEOPOLD-2017-ALG
 
 
 
@@ -13,19 +13,22 @@ LINDENMAKER ADDON INSTRUCTIONS
 
 Tested with Blender 2.7x, should also work with more recent versions.
 
-![Lindenmaker User Interface in Blender]( lpy-lsystems-blender-addon/images/LindenmakerUserInterface.png  "Lindenmaker User Interface in Blender")
+![Lindenmaker User Interface in Blender](https://raw.githubusercontent.com/mangostaniko/lpy-lsystems-blender-addon/master/images/LindenmakerUserInterface.jpg)
 
 
 INTRODUCTION
 -------------------
 
-Lindenmaker is an add-on to visualize structures produced via Lindenmayer systems (L-systems) and Turtle Interpretation in Blender. For a basic introduction to Lindenmayer systems and Turtle Interpretation, refer to the Wikipedia [^1] as well as the seminal work by Lindenmayer and Prusinkiewicz [^2] and Hanan [^3].
+Lindenmaker is an add-on to visualize structures produced via Lindenmayer systems (L-systems) and Turtle Interpretation in Blender. For a basic introduction to Lindenmayer systems and Turtle Interpretation, refer to the Wikipedia [[1]](https://en.wikipedia.org/wiki/L-system) as well as the seminal work by Lindenmayer and Prusinkiewicz [[2]](http://algorithmicbotany.org/papers/#abop) and Hanan [[3]](http://algorithmicbotany.org/papers/hanan.dis1992.html).
 
-The add-on is based upon a custom version of the open source L-Py (Lindenmayer Python) framework by Boudon et al. The original implementation [^4] is written in C++ and exposed to Python via Boost::Python, however only supporting Python 2, which is not compatible with the Blender Python API which is based on Python 3.5.
+The add-on is based upon a custom version of the open source L-Py (Lindenmayer Python) framework by Boudon et al. The original implementation [[4]](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3362793) is written in C++ and exposed to Python via Boost::Python, however only supporting Python 2, which is not compatible with the Blender Python API which is based on Python 3.5.
 
 L-Py is used for the derivation of L-strings via application of production rules defined in an .lpy file.
 Lindenmaker is responsible for the graphical interpretation (turtle interpretation) and visualisation of the resulting L-string. It reads in an .lpy file, passes it to L-Py to derive the L-string and then produces a hierarchy of objects corresponding to the structure described by the L-string via turtle interpretation, according to parameters specified in the add-on UI within Blender.
 Thus the custom version of L-Py has been freed from dependencies to PlantGL which is orginally used for the graphical interpretation of L-strings.
+
+
+![Lindenmaker Flower Mycelis](https://raw.githubusercontent.com/mangostaniko/lpy-lsystems-blender-addon/master/images/LindenmakerFlowerMycelis.jpg)
 
 
 INSTALLATION
@@ -36,7 +39,7 @@ INSTALLATION
 3. place lindenmaker in `<blender scripts dir>/addons`
 4. start Blender and enable the addon from "Preferenecs" > "Add-ons"
 
-Note: To determine the path of `<blender scripts dir>` on your system, refer to the blender docs [^5].
+Note: To determine the path of `<blender scripts dir>` on your system, refer to the blender docs [[5]](https://www.blender.org/manual/getting_started/installing/configuration/directories.html).
 
 
 USAGE
@@ -45,7 +48,7 @@ USAGE
 The Lindenmaker panel can be found in the 3D View Tool Shelf (open via `<T>` key).
 
 Before using the add-on, a valid L-Py L-system definition file (.lpy) has to be provided.
-For information and examples on how to write these, refer to the official L-Py documentation [^6].
+For information and examples on how to write these, refer to the official L-Py documentation [[6]](http://openalea.gforge.inria.fr/dokuwiki/doku.php?id=packages:vplants:lpy:doc).
 
 SUPPORTED TURTLE COMMANDS
 --------------------------------------------
