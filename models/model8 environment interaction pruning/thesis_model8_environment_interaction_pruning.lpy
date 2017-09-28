@@ -1,0 +1,38 @@
+import bpy
+import mathutils
+
+obstacle = bpy.data.objects['Obstacle']
+
+pruningDistance = 1.0 # distance to obstacle below which branches are cut
+maxApexAge = 4        # age when branch stops its terminal growth
+dW = 0.05             # width increase factor
+
+Axiom: I(2,0.1,0)A(0,0)
+derivation length: 10
+
+production:
+I(l,w,age) --> I(l,w+dW,age+1) # Internode
+L(age) --> L(age+1)            # Leaf
+A(age,time):                   # Apex
+    if age < maxApexAge:
+        produce I(1,0.1,0)/(137.5)L(0)?("P",0,0,0)[+(40)A(0,time+1)L(0)]A(age+1,time+1)L(0)
+?(vector,x,y,z):
+    if vector == "P" and is_nearby(x, y, z, obstacle):
+        produce /(45)^(30)~("Leaf", 1.0)%
+    else:
+        produce *
+        
+homomorphism:
+I(l,r,age):
+    produce F(l,r)
+L(age):
+    if age > 0 and age < 3:
+        produce ^(30)~("Leaf", 1.0+0.1*age)
+
+def is_nearby(x, y, z, obj):
+    p = mathutils.Vector((x,y,z))
+    pLocal = obj.matrix_world.inverted() * p
+    boolFound, surfacePoint, normal, face = obj.closest_point_on_mesh(pLocal)
+    surfacePoint = obj.matrix_world * surfacePoint
+    pToSurfacePoint = surfacePoint - p
+    return pToSurfacePoint.length < pruningDistance

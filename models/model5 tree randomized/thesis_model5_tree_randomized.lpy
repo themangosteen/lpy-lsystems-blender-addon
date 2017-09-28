@@ -1,0 +1,28 @@
+import random
+
+angDiv1 = 95      # divergence angle 1
+angDiv2 = 133     # divergence angle 2
+angBr = 25        # branching angle
+dL = 1.05         # elongation rate
+dW = 1.2          # width increase rate
+maxApexAge    = 4 # age when branch stops its terminal growth
+leafStartTime = 2 # time at which leaves start to grow
+
+Axiom: I(3,0.3)/(45)A(0,0)
+derivation length: 5
+
+production:
+I(l,w): # Internode
+    rnd = random.random()/4+1
+    produce I(l*dL*rnd, w*dW)
+L(age, time) --> L(age+1, time) # Leaf
+A(age, time): # Apex
+    rnd = random.random()/2+0.75
+    if age < maxApexAge and rnd > 0.9:
+        produce I(1,0.3)[&(angBr*rnd)I(1,0.3)L(0,time+1)A(0,time+1)]I(0.5,0.3)/(angDiv1*rnd)[&(angBr*rnd)I(1,0.3)L(0,time+1)A(0,time+1)]/(angDiv2*rnd)[I(1,0.3)A(age+1,time+1)]
+
+homomorphism:
+I(l,w) --> F(l,w)
+L(age, time):
+    if time > leafStartTime and age < 3:
+        produce ~("Leaf", 1.5+age/5)

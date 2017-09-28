@@ -1,0 +1,39 @@
+# L-system 3.2 from Lindenmayer, Prusinkiewicz Algorithmic Beauty of Plants
+# Mycelis muralis Model II 
+#
+# objects referenced via ~ command:
+# "Leaf"   .. leaf shape
+# "Flower" .. flower shape
+
+Axiom: I(25)FA(0) 
+derivation length: 100
+
+# ignore certain symbols in context check
+# e.g. in S/(180)F should detect S as left context of S to propagate signal
+ignore: +/
+
+production:
+
+S < A(t) --> T(0)O(t)
+A(t) :
+    if t > 0:
+        produce A(t-1)
+    elif t == 0:
+        produce [+(30)[+(30)L]G]F/(90)A(2)
+        
+S < F --> FS
+F > T(c) --> T(c+1)FU(c-1)
+U(c) < G --> I(c)FA(2)
+I(c) :
+    if c > 0:
+        produce I(c-1)
+    elif c == 0:
+        produce S
+        
+S --> *
+T(c) --> *
+
+homomorphism:
+G --> F
+L --> ~("Leaf")
+O(t) --> ~("Flower", t*0.3+0.7)

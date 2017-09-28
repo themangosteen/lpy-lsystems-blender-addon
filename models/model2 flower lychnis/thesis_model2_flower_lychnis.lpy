@@ -1,0 +1,32 @@
+# L-system from p. 81 in Lindenmayer, Prusinkiewicz Algorithmic Beauty of Plants
+# Lychnis coronaria
+#
+# objects referenced via ~ command:
+# "Leaf"      .. leaf shape
+# "Flower"    .. flower shape
+# "FlowerBud" .. flower bud shape
+
+Axiom: A(7) 
+derivation length: 30
+
+production:
+
+A(t) :
+    if t == 7:
+        produce FI(20)[+(20)L(0)]/(90)[&(30)A(0)]/(90)[+(20)L(0)]/(90)[&(30)A(4)]FI(10)K(0)
+    elif t < 7:
+        produce A(t+1)
+I(t) :
+    if t > 7:
+        produce FFI(t-1)
+        
+L(t) --> L(t+1)
+K(t) --> K(t+1)
+
+homomorphism:
+L(t) --> ~("Leaf", 0.7+t*0.05)
+K(t):
+    if t >= 5:
+        produce ~("FlowerBud", 1.0)
+    elif t < 5:
+        produce ~("Flower", 2.5-t*0.02)

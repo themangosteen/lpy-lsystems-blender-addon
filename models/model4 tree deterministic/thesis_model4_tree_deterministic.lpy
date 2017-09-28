@@ -1,0 +1,20 @@
+angBr    = 60  # branching angle
+angBrVar = 30  # branching variation angle
+angDiv   = 120 # divergence angle
+dL1      = 0.8 # length decrease rate trunk
+dL2      = 0.6 # length decrease rate lateral
+dW       = 0.7 # width decrease rate
+
+Axiom: A(10,1)
+derivation length: 10
+
+production:
+A(l,w) --> F(l,w)[&(angBr)B(l*dL2,w*dW)]/(angDiv)A(l*dL1,w*dW)
+B(l,w) --> F(l,w)[-(angBr)L(1)C(l*dL2,w*dW)]&(angBrVar)C(l*dL1,w*dW)L(1)
+C(l,w) --> F(l,w)[+(angBr)L(1)B(l*dL2,w*dW)]^(angBrVar)B(l*dL1,w*dW)L(1)
+L(age) --> L(age+1)
+
+homomorphism:
+L(age):
+    if age > 1 and age < 6:
+        produce &(20)\(40)~("Leaf", 2+age/5)

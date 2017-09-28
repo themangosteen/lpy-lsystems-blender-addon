@@ -1,0 +1,63 @@
+import bpy
+import mathutils
+import random
+
+soil = bpy.data.objects['Soil']
+#rootpos = bpy.data.objects['Root'].location
+
+def get_soil_nutrient_density():
+    
+    # build kd tree of mesh vertices and list of mesh vertex weights.
+    # used to determine soil nutrient density (vertex weight) around turtle root position.
+    # should be done only once before initial production step,
+    # but lpy has a problem with underscores in variable name.
+    #if bpy.context.scene.number_production_steps_done == 0:
+    
+    # build mesh vertex kd tree
+    mesh = soil.data
+    size = len(mesh.vertices)
+    kd = mathutils.kdtree.KDTree(size)
+    for index, vert in enumerate(mesh.vertices):
+        kd.insert(vert.co, index)
+    kd.balance()
+
+    # important: make sure vertices with weight 0 are also assigned to the group
+    # if not select all, then deselect group vertices and assign those left with weight 0
+    vgroup = soil.vertex_groups[0]
+    weights = []
+    for index, vert in enumerate(mesh.vertices):
+        for group in vert.groups:
+            if group.group == vgroup.index:
+                weights.append(group.weight)
+
+    #p = rootpos
+    p = bpy.context.scene.cursor_location
+    pLocal = p * soil.matrix_world.inverted()
+    vPos, vIndex, vDist = kd.find(pLocal) # find closest vertex on soil mesh
+    return weights[vIndex]
+
+
+nutr = get_soil_nutrient_density()+0.25
+maxApexAge = (4*nutr)+1 # age when branch stops its terminal growth
+dW = 0.05 # width increase factor
+
+Axiom: I(2,0.1,0)A(0,0)
+derivation length: 10
+
+production:
+I(l,w,age) --> I(l,w+dW,age+1) # Internode
+L(age) --> L(age+1)            # Leaf
+A(age,time):                   # Apex
+    rnd = random.random()
+    if age < maxApexAge and nutr > rnd/2:
+        produce I(1,0.1,0)/(137.5)L(0)[+(40)A(0,time+1)L(0)]A(age+1,time+1)L(0)
+        
+homomorphism:
+I(l,r,age):
+    produce F(l,r)
+L(age):
+    rnd = random.random()
+    if age > 0 and age < 3 and nutr > rnd:
+        produce ^(30)~("Leaf", 1.0+0.1*age)
+
+
