@@ -16,7 +16,7 @@ class Turtle:
         self.stack = []
         # rotate such that heading is in +Z (we want to grow upwards in blender)
         # we thus have heading = +Z, left = -Y, up = +X
-        self.mat *= Matrix.Rotation(radians(270), 4, 'Y') 
+        self.mat @= Matrix.Rotation(radians(270), 4, 'Y') 
         
     def push(self):
         """Push turtle state to stack"""
@@ -29,15 +29,15 @@ class Turtle:
 
     def move(self, stepsize):
         """Move turtle in its heading direction."""
-        vec = self.mat * Vector((stepsize,0,0,0))
+        vec = self.mat @ Vector((stepsize,0,0,0))
         self.mat.col[3] += vec 
         
     def turn(self, angle_degrees):
-        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'Z')
+        self.mat @= Matrix.Rotation(radians(angle_degrees), 4, 'Z')
     def pitch(self, angle_degrees):
-        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'Y')
+        self.mat @= Matrix.Rotation(radians(angle_degrees), 4, 'Y')
     def roll(self, angle_degrees):
-        self.mat *= Matrix.Rotation(radians(angle_degrees), 4, 'X')
+        self.mat @= Matrix.Rotation(radians(angle_degrees), 4, 'X')
         
     def look_at(self, target):
         """
@@ -129,7 +129,7 @@ class DrawingTurtle(Turtle):
             root.data.name = "Root"
             root.data.use_auto_smooth = True
             root.data.auto_smooth_angle = radians(85)
-            bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action = 'SELECT')
             bpy.ops.mesh.delete()
             bpy.ops.object.mode_set(mode = 'OBJECT')
@@ -153,7 +153,7 @@ class DrawingTurtle(Turtle):
                 bpy.ops.object.empty_add(type='ARROWS', radius=0)
                 empty = bpy.context.object
                 empty.name = "Node"
-                empty.matrix_world *= self.mat
+                empty.matrix_world @= self.mat
                 self.add_child_to_current_branch_parent(empty)
                 self.current_parent = empty
                 bpy.ops.object.select_all(action='DESELECT')
@@ -198,9 +198,9 @@ class DrawingTurtle(Turtle):
         """Add object instance from given shared mesh in current turtle coordinate system."""
         scene = bpy.context.scene
         obj = bpy.data.objects.new(name, mesh) # create new object sharing the given mesh data
-        scene.objects.link(obj)
-        scene.objects.active = obj
-        obj.select = True
+        scene.collection.objects.link(obj)
+        bpy.context.view_layer.objects.active = obj
+        obj.select_set(True)
         # optionally set shading
         if scene.bool_force_shade_flat:
             bpy.ops.object.shade_flat()
@@ -219,13 +219,13 @@ class DrawingTurtle(Turtle):
             obj.material_slots[0].link = 'OBJECT'
             obj.material_slots[0].material = bpy.data.materials[self.materialindex]
         # align object with turtle
-        obj.matrix_world *= self.mat
+        obj.matrix_world @= self.mat
         # set scale
         obj.scale = scale
         # add obj to existing structure
         if scene.bool_no_hierarchy:
-            self.root.select = True
-            scene.objects.active = self.root
+            self.root.select_set(True)
+            bpy.context.view_layer.objects.active = self.root
             bpy.ops.object.join()
         else:
             self.add_child_to_current_branch_parent(obj)
@@ -251,7 +251,7 @@ class DrawingTurtle(Turtle):
         # rotate cylinder mesh to point towards x axis and position origin at base
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.transform.rotate(value=radians(90), axis=(0, 1, 0))
+        bpy.ops.transform.rotate(value=radians(90), orient_axis='Y')
         bpy.ops.transform.translate(value=(cylinder_length/2,0,0))
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         cyl.data.name = bpy.types.Scene.internode_mesh_name[1]['default']
@@ -264,7 +264,7 @@ class DrawingTurtle(Turtle):
         
     def create_default_node_mesh(self, _subdivisions=1):
         """Initialize the default icosphere mesh used to draw nodes"""
-        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=_subdivisions, size=0.5)
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=_subdivisions, radius=0.5)
         icosphere = bpy.context.object
         icosphere.data.name = bpy.types.Scene.node_mesh_name[1]['default']
         icosphere.data.use_auto_smooth = True
