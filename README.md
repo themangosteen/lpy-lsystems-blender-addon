@@ -1,7 +1,7 @@
 Algorithmic Botany via Lindenmayer Systems in Blender
 ==============================
 
-This project was developed as part of a TU Vienna Bachelor thesis on the use of L-systems inside of the open source 3D computer graphics software Blender. The thesis describes applications of the code prodived in this project for specific use cases of L-system modeling in Blender and specifically to environmental interaction of a growing structure with a Blender scene. 
+This project was developed as part of a TU Vienna Bachelor thesis on the use of L-systems (Lindenmayer systems) inside of the open source 3D computer graphics software Blender, based on the open source Python library L-Py by Boudon et al. The thesis describes applications of the code prodived in this project for specific use cases of L-system modeling in Blender and specifically to environmental interaction of a growing structure with a Blender scene. 
 
 The full thesis is available as PDF:
 https://www.cg.tuwien.ac.at/research/publications/2017/LEOPOLD-2017-ALG
