@@ -1,0 +1,2 @@
+Cecill V2 License (LGPL compatible)
+http://www.cecill.info/licences/Licence_CeCILL_V2-en.html

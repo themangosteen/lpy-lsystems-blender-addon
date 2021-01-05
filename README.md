@@ -35,7 +35,7 @@ INSTALLATION
 -------------------
 
 1. build L-Py (follow instructions in README.txt in the lpy directory)
-2. place lpy.so in `<blender scripts dir>/modules`
+2. place lpy.pyd in `<blender scripts dir>/modules`
 3. place lindenmaker in `<blender scripts dir>/addons`
 4. start Blender and enable the addon from "Preferenecs" > "Add-ons"
 
