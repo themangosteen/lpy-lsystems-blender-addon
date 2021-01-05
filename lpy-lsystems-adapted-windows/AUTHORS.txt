@@ -1,0 +1,5 @@
+Original Author:
+Frédéric Boudon
+frederic.boudon@cirad.fr
+
+NOTE: this is a slightly adapted version of lpy used for the lindenmaker blender add-on
