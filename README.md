@@ -6,6 +6,7 @@ This project was developed as part of a TU Vienna Bachelor thesis on the use of 
 The full thesis is available as PDF:
 https://www.cg.tuwien.ac.at/research/publications/2017/LEOPOLD-2017-ALG
 
+Support for building on Windows was gladly provided by LittleCoinCoin, in the lpy-lsystems-adapted-windows directory. Thank you!!
 
 
 LINDENMAKER ADDON INSTRUCTIONS
