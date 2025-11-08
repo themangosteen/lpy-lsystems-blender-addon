@@ -14,7 +14,7 @@ LINDENMAKER ADDON INSTRUCTIONS
 
 Tested with Blender 2.7x, should also work with more recent versions.
 
-![Lindenmaker User Interface in Blender](https://raw.githubusercontent.com/mangostaniko/lpy-lsystems-blender-addon/master/images/LindenmakerUserInterface.jpg)
+![Lindenmaker User Interface in Blender](https://raw.githubusercontent.com/themangosteen/lpy-lsystems-blender-addon/master/images/LindenmakerUserInterface.jpg)
 
 
 INTRODUCTION
@@ -29,7 +29,7 @@ Lindenmaker is responsible for the graphical interpretation (turtle interpretati
 Thus the custom version of L-Py has been freed from dependencies to PlantGL which is orginally used for the graphical interpretation of L-strings.
 
 
-![Lindenmaker Flower Mycelis](https://raw.githubusercontent.com/mangostaniko/lpy-lsystems-blender-addon/master/images/LindenmakerFlowerMycelis.jpg)
+![Lindenmaker Flower Mycelis](https://raw.githubusercontent.com/themangosteen/lpy-lsystems-blender-addon/master/images/LindenmakerFlowerMycelis.jpg)
 
 
 INSTALLATION
