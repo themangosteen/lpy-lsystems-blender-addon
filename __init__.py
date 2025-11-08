@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Lindenmaker",
     "description": "Lindenmayer systems for Blender via the L-Py framework.",
-    "author": "Addon by Nikolaus Leopold. L-Py framework by Frederic Boudon et al.",
+    "author": "Addon by Nikole Leopold. L-Py framework by Frederic Boudon et al.",
     "version": (1, 0),
     "blender": (2, 77, 0),
     "location": "View3D > Add > Mesh",
