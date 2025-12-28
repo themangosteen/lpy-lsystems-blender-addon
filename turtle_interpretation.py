@@ -13,15 +13,20 @@ def interpret(lstring, default_length = 2.0,
                        default_width_growth_factor=1.05,
                        default_angle = 45.0,
                        default_materialindex = 0,
-                       dryrun_nodraw = False):
+                       dryrun_nodraw = False,
+                       use_turtle = None):
     """Create geometrical representation of L-string via Turtle Interpretation. NOTE: Commands that are not supported will be ignored and not raise an error."""
     
+    use_custom_turtle = (None != use_turtle and isinstance(use_turtle, turtle.Turtle))
+
     # the option dryrun_nodraw is set, the turtle moves but does not draw any objects.
     # this is useful to do state queries at different moments via the '?' command
     # without the overhead of the drawing functions
     if dryrun_nodraw:
         t = turtle.Turtle(default_width, default_materialindex) # turtle base class that doesnt draw
         #print("TURTLE INTERPRETATION DRYRUN")
+    elif use_custom_turtle:
+        t = use_turtle
     else:
         t = turtle.DrawingTurtle(default_width, default_materialindex)
     
@@ -251,7 +256,8 @@ def interpret(lstring, default_length = 2.0,
                       "The values 0,0,0 will be replaced by the x,y,z respective vector values.")
                 
     if not dryrun_nodraw:
-        t.root.name = "Root" # changed to "Root.xxx" on name collision
+        if not use_custom_turtle:
+            t.root.name = "Root" # changed to "Root.xxx" on name collision
         bpy.context.scene.last_interpretation_result_objname = t.root.name
     
 def applyCuts(lstring):
